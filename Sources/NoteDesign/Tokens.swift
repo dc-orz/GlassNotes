@@ -39,10 +39,14 @@ public enum Tokens {
     /// The desktop material and ink are shared by every note, including archived notes on restore.
     public enum NoteGlass {
         public static let appearance = NSAppearance.Name.darkAqua
-        static let clearFrostOpacity = 0.45
+        static let clearGlassOpacity = 0.32
+        static let clearFrostOpacity = 0.15
+        static let inkShadow = Color.black.opacity(0.62)
+        static let inkShadowRadius: CGFloat = 1.3
+        static let inkShadowOffset: CGFloat = 0.5
         static func shade(for transparency: GlassTransparency) -> Color {
             switch transparency {
-            case .clear: Color.black.opacity(0.10)
+            case .clear: Color.clear
             case .standard: Color.black.opacity(0.26)
             case .low: Color.black.opacity(0.62)
             }

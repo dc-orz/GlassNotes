@@ -14,7 +14,7 @@
 | 操作 | SymbolAction | 图标控件自带统一命中区、辅助功能标签和悬浮提示 |
 | 完成 | InkDismissal、InkWipe | 仅对文字施加擦除遮罩；玻璃层固定，最后整体淡出。恢复动作取消待执行的关闭 |
 
-产品名统一写作 **GlassNotes**。应用图标以青绿色为底，一片轻微倾斜的玻璃悬浮其上。偏移的投影拉开两层距离，白色记号笔笔迹落在玻璃表面。菜单栏取同一笔迹的单色轮廓，由系统适配亮暗背景。图标原稿和打包资源见 [Packaging](../Packaging)。
+产品名统一写作 **GlassNotes**。应用图标以青绿色为底，一片轻微倾斜的玻璃悬浮其上。偏移的投影拉开两层距离，一笔炭黑色墨迹在玻璃上形成深浅不同的两道弧，末端向上挑起。菜单栏取同一笔迹的单色轮廓，由系统适配亮暗背景。图标原稿和打包资源见 [Packaging](../Packaging)。
 
 桌面正文采用系统无衬线。标题靠字重和留白区分，笔迹质感集中在品牌图形与擦除动效上。应用通过系统 API 获取字体，随 macOS 选择适合语言的字形。若未来需要在多个平台固定中文排印，可评估 Noto Sans CJK SC；分发字体时须保留其版权声明与 SIL OFL 1.1 许可证。[Apple 字体指南](https://developer.apple.com/documentation/technologyoverviews/managing-the-fonts-for-your-app) · [Noto Sans CJK 官方许可](https://github.com/notofonts/noto-cjk/blob/main/Sans/LICENSE)
 
@@ -22,10 +22,10 @@
 
 | 档位 | macOS 26 及以上 | macOS 14–15 |
 | --- | --- | --- |
-| 通透 | Clear Liquid Glass，下衬 10% 黑色以衬托白字 | 降低背景毛玻璃的强度，叠加 10% 黑色 |
+| 通透 | 无底色的 Clear Liquid Glass，材质层以 32% 不透明度合成 | 无底色的原生毛玻璃，材质层以 15% 不透明度合成 |
 | 标准（默认） | Regular Liquid Glass，26% 黑色着色，沿用原版外观 | 原生毛玻璃叠加 26% 黑色 |
 | 低透 | 标准玻璃下衬 62% 黑色，进一步压低壁纸明暗反差 | 原生毛玻璃叠加 62% 黑色 |
 
-表中百分比是配色参数，实际透光与折射由系统合成。开启系统「减少透明度」时三个档位都显示为实色，菜单提示原因，关闭后继续使用此前的选择。快速记录面板及撤销提示沿用系统界面材质。参考 [Apple 的 Clear Glass 使用说明](https://developer.apple.com/documentation/swiftui/glass/clear)。
+通透档只减弱材质层，文字和操作图标保持原有颜色，在笔画边缘带轻微暗影。表中的合成与着色参数不代表最终透光率。开启系统「减少透明度」时三个档位都显示为实色，菜单提示原因，关闭后继续使用此前的选择。快速记录面板及撤销提示沿用系统界面材质。参考 [Apple 的 Clear Glass 使用说明](https://developer.apple.com/documentation/swiftui/glass/clear)。
 
 新增功能先查上表。标准系统按钮、菜单、选择器可以直接组合，专属的品牌外观和运动曲线归入 NoteDesign。评审时检查正文较长的卡片、亮暗背景、减少透明度、减少动态效果和键盘操作。

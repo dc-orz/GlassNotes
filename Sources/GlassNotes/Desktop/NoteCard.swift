@@ -38,7 +38,6 @@ struct NoteCard: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            GlassSurface(.desktopNote(glass.selection))
             Group {
                 if state.editing {
                     InkEditor(text: $state.draft, label: "便签内容")
@@ -74,7 +73,8 @@ struct NoteCard: View {
                 .padding(Tokens.Space.tight)
             }
         }
-        .foregroundStyle(Tokens.NoteGlass.ink)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .desktopNoteGlass(glass.selection)
         .opacity(dismissal.visibility)
         .onHover { hovering = $0 }
         .onChange(of: state.editing) { _, editing in editingFocus = editing }

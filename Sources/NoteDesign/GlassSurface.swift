@@ -19,7 +19,8 @@ public struct GlassSurface: View {
             shape.fill(Color(nsColor: .windowBackgroundColor))
         } else if #available(macOS 26.0, *) {
             if level == .clear {
-                Color.clear.glassEffect(.clear, in: shape).background(shape.fill(shade))
+                Color.clear.glassEffect(.clear, in: shape)
+                    .opacity(Tokens.NoteGlass.clearGlassOpacity)
             } else if level == .low {
                 Color.clear.glassEffect(.regular.tint(Tokens.NoteGlass.shade(for: .standard)), in: shape)
                     .background(shape.fill(shade))
@@ -31,6 +32,18 @@ public struct GlassSurface: View {
                 .opacity(level == .clear ? Tokens.NoteGlass.clearFrostOpacity : 1)
                 .overlay(shade).clipShape(shape)
         }
+    }
+}
+
+extension View {
+    /// Keep ink legible on bright wallpaper while allowing the glass behind it to stay clear.
+    public func desktopNoteGlass(_ level: GlassTransparency) -> some View {
+        foregroundStyle(Tokens.NoteGlass.ink)
+            .shadow(
+                color: level == .clear ? Tokens.NoteGlass.inkShadow : .clear,
+                radius: Tokens.NoteGlass.inkShadowRadius, y: Tokens.NoteGlass.inkShadowOffset
+            )
+            .background(GlassSurface(.desktopNote(level)))
     }
 }
 
