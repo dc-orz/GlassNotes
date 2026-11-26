@@ -7,6 +7,18 @@ public enum GlassTransparency: String, CaseIterable, Sendable {
 /// The starting material and the two independent, bounded controls for a desktop note.
 public struct NoteGlassAppearance: Equatable, Sendable {
     public let base: GlassTransparency
+    var frostCoverage: Double {
+        if #available(macOS 26.0, *) {
+            switch base {
+            case .clear: Tokens.NoteGlass.clearFrostCoverage
+            case .standard: Tokens.NoteGlass.standardFrostCoverage
+            case .low: Tokens.NoteGlass.lowFrostCoverage
+            }
+        } else {
+            base == .standard ? Tokens.NoteGlass.legacyStandardFrostCoverage : 1
+        }
+    }
+
     public var materialOpacity: Double {
         didSet {
             materialOpacity = Self.bounded(materialOpacity, in: Tokens.NoteGlass.materialRange, fallback: oldValue)

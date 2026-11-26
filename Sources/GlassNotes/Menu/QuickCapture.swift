@@ -67,6 +67,13 @@ struct QuickCapture: View {
                     Divider()
                     Button("快速记录快捷键…") { detail = .shortcut }
                     Divider()
+                    if let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString")
+                        as? String
+                    {
+                        Text("版本 \(version)")
+                    } else {
+                        Text("本地开发版")
+                    }
                     Button("退出 GlassNotes") { NSApp.terminate(nil) }.keyboardShortcut("q")
                 } label: {
                     Image(systemName: "ellipsis.circle")

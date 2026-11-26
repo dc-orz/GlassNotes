@@ -29,7 +29,8 @@ public struct GlassSurface: View {
                     FrostedBackdrop().clipShape(shape)
                 }
             case .desktopNote(let look):
-                desktopBackdrop(look)
+                FrostedBackdrop()
+                    .opacity(look.frostCoverage)
                     .clipShape(shape)
                     .overlay {
                         shape.strokeBorder(Tokens.NoteGlass.edgeLight, lineWidth: Tokens.NoteGlass.edgeWidth)
@@ -42,20 +43,6 @@ public struct GlassSurface: View {
         }
     }
 
-    @ViewBuilder
-    private func desktopBackdrop(_ look: NoteGlassAppearance) -> some View {
-        if #available(macOS 26.0, *) {
-            ZStack {
-                FrostedBackdrop()
-                    .opacity(
-                        look.base == .clear
-                            ? Tokens.NoteGlass.clearFrostCoverage : Tokens.NoteGlass.regularFrostCoverage)
-                if look.base == .clear { Tokens.NoteGlass.clearSheen }
-            }
-        } else {
-            FrostedBackdrop()
-        }
-    }
 }
 
 extension View {

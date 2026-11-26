@@ -46,14 +46,15 @@ public enum Tokens {
         public static let appearance = NSAppearance.Name.darkAqua
         public static let materialRange = 0.20...1.00
         public static let dimmingRange = 0.00...0.62
-        static let standardDimming = 0.26
+        static let standardDimming = 0.08
         static let clearGlassOpacity = 0.50
         static let clearFrostOpacity = 0.28
         static let cornerRadius: CGFloat = 22
-        // Base layers at full material strength. The slider scales the entire surface linearly.
+        // Coverage of the native backdrop at full slider strength.
         static let clearFrostCoverage = 0.16
-        static let regularFrostCoverage = 0.42
-        static let clearSheen = Color.white.opacity(0.22)
+        static let standardFrostCoverage = 0.26
+        static let lowFrostCoverage = 0.42
+        static let legacyStandardFrostCoverage = 0.62
         static let edgeWidth: CGFloat = 1.5
         static let edgeSoftness: CGFloat = 0.8
         static let edgeLight = LinearGradient(
