@@ -11,6 +11,8 @@ struct QuickCapture: View {
     @ObservedObject var shortcut: CaptureShortcut
     @ViewState private var archived = false
     @FocusState private var focused: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    private var glass = DesktopGlassPreference()
 
     private var displayed: [Note] {
         state.notes.filter { ($0.completedAt != nil) == archived }
@@ -23,6 +25,17 @@ struct QuickCapture: View {
                 Label("墨笺", systemImage: "pencil.tip").font(Tokens.TypeStyle.heading)
                 Spacer()
                 Menu {
+                    Picker(
+                        reduceTransparency ? "玻璃透明度（系统已减少透明度）" : "玻璃透明度",
+                        selection: glass.$selection
+                    ) {
+                        Text("通透").tag(GlassTransparency.clear)
+                        Text("标准").tag(GlassTransparency.standard)
+                        Text("低透").tag(GlassTransparency.low)
+                    }
+                    .pickerStyle(.menu)
+                    .disabled(reduceTransparency)
+                    Divider()
                     Picker("快速记录快捷键", selection: Binding(get: { shortcut.choice }, set: { shortcut.select($0) })) {
                         ForEach(CaptureShortcut.Choice.allCases, id: \.self) { Text($0.title).tag($0) }
                     }

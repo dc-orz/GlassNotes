@@ -1,6 +1,7 @@
 import AppKit
 import NoteCore
 import NoteDesign
+import SwiftUI
 import Testing
 
 @testable import GlassNotes
@@ -11,6 +12,49 @@ struct NativeDesktopTests {
     @Test func markerFontIsRegistered() {
         #expect(MarkerFont.name.lowercased().contains("markergothic"))
         #expect(NSFont(name: MarkerFont.name, size: 19) != nil)
+    }
+
+    @Test(.enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"))
+    func glassPreferenceUpdatesOpenWindowsAndSurvivesReopen() async throws {
+        _ = NSApplication.shared
+        let suite = "GlassNotesTests." + UUID().uuidString
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        func host(_ store: UserDefaults, observe: @escaping (Binding<GlassTransparency>) -> Void) -> NSPanel {
+            let panel = NSPanel(
+                contentRect: CGRect(origin: .zero, size: Tokens.Size.shortNote),
+                styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+            panel.isReleasedWhenClosed = false
+            panel.contentView = NSHostingView(
+                rootView: GlassPreferenceProbe(observe: observe).defaultAppStorage(store))
+            panel.orderBack(nil)
+            return panel
+        }
+
+        var selection: Binding<GlassTransparency>?
+        var displayed: GlassTransparency?
+        let menu = host(defaults) { selection = $0 }
+        let note = host(defaults) { displayed = $0.wrappedValue }
+        defer {
+            menu.close()
+            note.close()
+        }
+        try await Task.sleep(for: .milliseconds(200))
+        let setting = try #require(selection)
+        #expect(displayed == .standard)
+        for level in [GlassTransparency.clear, .standard, .low] {
+            setting.wrappedValue = level
+            try await Task.sleep(for: .milliseconds(150))
+            #expect(displayed == level)
+        }
+
+        let reopened = try #require(UserDefaults(suiteName: suite))
+        var restored: GlassTransparency?
+        let nextNote = host(reopened) { restored = $0.wrappedValue }
+        defer { nextNote.close() }
+        try await Task.sleep(for: .milliseconds(150))
+        #expect(restored == .low)
     }
 
     @Test(.enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"))
@@ -143,5 +187,15 @@ struct NativeDesktopTests {
         #expect(desktop.windows[note.id]?.panel.frame == window.panel.frame)
         #expect(desktop.windows[note.id]?.panel.appearance?.name == .darkAqua)
         for (id, frame) in frames { #expect(desktop.windows[id]?.panel.frame == frame) }
+    }
+}
+
+private struct GlassPreferenceProbe: View {
+    private var glass = DesktopGlassPreference()
+    let observe: (Binding<GlassTransparency>) -> Void
+
+    var body: some View {
+        GlassSurface(.desktopNote(glass.selection))
+            .onChange(of: glass.selection, initial: true) { _, _ in observe(glass.$selection) }
     }
 }

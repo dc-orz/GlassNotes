@@ -34,10 +34,11 @@ struct NoteCard: View {
     @FocusState private var editingFocus: Bool
     @ViewState private var hovering = false
     @StateObject private var dismissal = InkDismissal()
+    private var glass = DesktopGlassPreference()
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            GlassSurface(.desktopNote)
+            GlassSurface(.desktopNote(glass.selection))
             Group {
                 if state.editing {
                     InkEditor(text: $state.draft, label: "便签内容")
