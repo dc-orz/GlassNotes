@@ -2,13 +2,14 @@ import Darwin
 import Foundation
 
 public enum LibraryError: LocalizedError {
-    case alreadyOpen, unknownVersion, invalidData, missingNote, emptyNote
+    case alreadyOpen, unknownVersion, invalidData, missingNote, emptyNote, notCompleted
     public var errorDescription: String? {
         switch self {
         case .alreadyOpen: "这份便签库已在另一个进程中打开。"
         case .unknownVersion: "这份便签库来自更新的版本，请用新版 GlassNotes打开。"
         case .invalidData: "无法读取便签库。原文件已保留，可从备份恢复。"
         case .missingNote: "这张便签已不存在，请重新打开。"
+        case .notCompleted: "这张便签已回到桌面，只能永久删除已完成的便签。"
         case .emptyNote: "请先写一点内容。"
         }
     }
@@ -68,6 +69,14 @@ public enum LibraryError: LocalizedError {
     }
 
     public func restore(_ id: UUID) throws { try update(id) { $0.completedAt = nil } }
+
+    public func deleteCompleted(_ id: UUID) throws {
+        guard let index = notes.firstIndex(where: { $0.id == id }) else { return }
+        guard notes[index].completedAt != nil else { throw LibraryError.notCompleted }
+        var next = notes
+        next.remove(at: index)
+        try commit(next)
+    }
 
     private func update(_ id: UUID, change: (inout Note) -> Void) throws {
         guard let index = notes.firstIndex(where: { $0.id == id }) else { throw LibraryError.missingNote }

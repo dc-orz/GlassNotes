@@ -22,9 +22,10 @@ If you have a GlassNotes DMG, open it and drag **GlassNotes.app** into **Applica
 | Arrange | Drag the text, edge, or open area of a note. Regular app windows sit above your notes. |
 | Edit | Hover over the note and click the pencil in the lower-right corner. Press **⌘↩** to save or **Esc** to cancel. |
 | Complete and restore | Click the circled checkmark. The text wipes away and the glass fades. Undo within five seconds, or restore it later from **已完成** in the menu bar panel. |
+| Permanently delete | In **已完成**, click the trash icon next to a note, then confirm **永久删除**. |
 | Adjust the glass | Open **… → 玻璃透明度** and choose a starting preset. Drag **材质强度** (material opacity, 20–100%) and **背景压暗** (background dimming, 0–62%) to update every note live. Use **恢复** to restore the selected preset. Reduce Transparency and Reduce Motion follow macOS accessibility settings. |
 
-The **…** menu also lets you change or disable the capture shortcut.
+To set a global capture shortcut, open **… → 快速记录快捷键 → 录制快捷键** and press the combination. Use Command, Option, or Control with a key, or use a function key on its own. Press Esc to cancel. The **预设** menu restores a preset or turns the shortcut off.
 
 ## Local storage
 

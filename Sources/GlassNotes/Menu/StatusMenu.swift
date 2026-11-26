@@ -53,6 +53,10 @@ final class StatusMenu: NSObject, NSWindowDelegate {
             showEditor: { [weak self] id in
                 self?.close()
                 self?.desktop.windows[id]?.edit()
+            },
+            recordShortcut: { [weak self] in
+                guard let self else { return }
+                self.shortcut.beginRecording(in: self.panel)
             }, shortcut: shortcut
         )
         .background(GlassSurface())
@@ -74,7 +78,10 @@ final class StatusMenu: NSObject, NSWindowDelegate {
         panel.makeKeyAndOrderFront(nil)
     }
 
-    private func close() { panel.orderOut(nil) }
+    private func close() {
+        shortcut.cancelRecording()
+        panel.orderOut(nil)
+    }
 
     func windowDidResignKey(_ notification: Notification) { close() }
 }

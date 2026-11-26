@@ -32,6 +32,24 @@ struct NoteLibraryTests {
         #expect(reopened.notes.first?.completedAt == nil)
     }
 
+    @Test func permanentDeletionIsLimitedToCompletedNotesAndSurvivesReopen() throws {
+        let folder = temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let active = Note(text: "保留", placement: p)
+        let archived = Note(text: "删除", placement: p)
+        do {
+            let library = try NoteLibrary(directory: folder) { [active, archived] }
+            try library.complete(archived.id)
+            try library.restore(archived.id)
+            #expect(throws: LibraryError.notCompleted) { try library.deleteCompleted(archived.id) }
+            try library.complete(archived.id)
+            try library.deleteCompleted(archived.id)
+            try library.deleteCompleted(archived.id)
+            #expect(library.notes == [active])
+        }
+        #expect(try NoteLibrary(directory: folder).notes == [active])
+    }
+
     @Test func historicalInksRoundTripWithoutAStyleMigration() throws {
         let folder = temporaryFolder()
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)

@@ -4,10 +4,11 @@ import SwiftUI
 
 @MainActor
 final class UndoToast {
+    private(set) var noteID: UUID?
     private var panel: NSPanel?
     private var timeout: Task<Void, Never>?
 
-    func show(near source: CGRect, undo: @escaping () -> Void) {
+    func show(for id: UUID, near source: CGRect, undo: @escaping () -> Void) {
         hide()
         let size = Tokens.Size.toast
         let screen =
@@ -29,6 +30,7 @@ final class UndoToast {
                 Label("已完成", systemImage: "checkmark")
                 Button("撤销", action: undo)
             }.frame(width: size.width, height: size.height).background(GlassSurface()))
+        noteID = id
         self.panel = panel
         panel.orderFrontRegardless()
         timeout = Task { [weak self] in
@@ -38,6 +40,7 @@ final class UndoToast {
     }
 
     func hide() {
+        noteID = nil
         timeout?.cancel()
         timeout = nil
         panel?.close()

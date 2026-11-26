@@ -8,10 +8,15 @@ struct QuickCapture: View {
     let desktop: DesktopWindows
     let close: () -> Void
     let showEditor: (UUID) -> Void
+    let recordShortcut: () -> Void
     @ObservedObject var shortcut: CaptureShortcut
     @ViewState private var archived = false
     @FocusState private var focused: Bool
-    @ViewState private var adjustingGlass = false
+    private enum Detail: Equatable {
+        case glass, shortcut
+        case delete(Note)
+    }
+    @ViewState private var detail: Detail?
 
     private var displayed: [Note] {
         state.notes.filter { ($0.completedAt != nil) == archived }
@@ -20,17 +25,36 @@ struct QuickCapture: View {
 
     var body: some View {
         capturePane
-            .disabled(adjustingGlass)
-            .allowsHitTesting(!adjustingGlass)
-            .accessibilityHidden(adjustingGlass)
-            .opacity(adjustingGlass ? 0 : 1)
+            .disabled(detail != nil)
+            .allowsHitTesting(detail == nil)
+            .accessibilityHidden(detail != nil)
+            .opacity(detail == nil ? 1 : 0)
             .overlay(alignment: .topLeading) {
-                if adjustingGlass { GlassAdjustmentPane { adjustingGlass = false } }
+                switch detail {
+                case .glass: GlassAdjustmentPane { detail = nil }
+                case .shortcut: ShortcutSettingsPane(shortcut: shortcut, record: recordShortcut) { detail = nil }
+                case .delete(let note): confirmDeletion(note)
+                case nil: EmptyView()
+                }
             }
             .padding(Tokens.Space.inset)
             .frame(width: Tokens.Size.menuWidth)
             .onAppear { focused = true }
-            .onChange(of: adjustingGlass) { _, adjusting in focused = !adjusting }
+            .onChange(of: detail) { _, value in focused = value == nil }
+    }
+
+    private func confirmDeletion(_ note: Note) -> some View {
+        VStack(alignment: .leading, spacing: Tokens.Space.standard) {
+            Text("永久删除这张便签？").font(Tokens.TypeStyle.heading)
+            Text(verbatim: note.text).lineLimit(3)
+            Text("删除后无法恢复。").font(Tokens.TypeStyle.help).foregroundStyle(.secondary)
+            HStack {
+                Button("取消") { detail = nil }
+                Button("永久删除", role: .destructive) {
+                    if state.perform({ try state.library.deleteCompleted(note.id) }) { detail = nil }
+                }
+            }
+        }
     }
 
     private var capturePane: some View {
@@ -39,11 +63,9 @@ struct QuickCapture: View {
                 Text(verbatim: "GlassNotes").font(Tokens.TypeStyle.heading)
                 Spacer()
                 Menu {
-                    Button("玻璃透明度…") { adjustingGlass = true }
+                    Button("玻璃透明度…") { detail = .glass }
                     Divider()
-                    Picker("快速记录快捷键", selection: Binding(get: { shortcut.choice }, set: { shortcut.select($0) })) {
-                        ForEach(CaptureShortcut.Choice.allCases, id: \.self) { Text($0.title).tag($0) }
-                    }
+                    Button("快速记录快捷键…") { detail = .shortcut }
                     Divider()
                     Button("退出 GlassNotes") { NSApp.terminate(nil) }.keyboardShortcut("q")
                 } label: {
@@ -92,6 +114,7 @@ struct QuickCapture: View {
                                     SymbolAction("恢复到桌面", symbol: "arrow.uturn.backward") {
                                         desktop.restore(note.id)
                                     }
+                                    SymbolAction("永久删除便签", symbol: "trash") { detail = .delete(note) }
                                 } else {
                                     SymbolAction("完成便签", symbol: "checkmark.circle") { desktop.complete(note.id) }
                                 }
@@ -100,7 +123,7 @@ struct QuickCapture: View {
                     }
                 }.frame(height: Tokens.Size.listHeight)
             }
-            if let issue = shortcut.issue {
+            if shortcut.isUnavailable, let issue = shortcut.issue {
                 Text(issue).font(Tokens.TypeStyle.help).foregroundStyle(.secondary)
             }
         }

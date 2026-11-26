@@ -207,6 +207,10 @@ struct NativeDesktopTests {
         #expect(desktop.windows[note.id]?.panel.frame == window.panel.frame)
         #expect(desktop.windows[note.id]?.panel.appearance?.name == .darkAqua)
         for (id, frame) in frames { #expect(desktop.windows[id]?.panel.frame == frame) }
+        desktop.complete(note.id)
+        try lib.deleteCompleted(note.id)
+        #expect(desktop.windows[note.id] == nil)
+        #expect(!state.notes.contains(where: { $0.id == note.id }))
     }
 }
 

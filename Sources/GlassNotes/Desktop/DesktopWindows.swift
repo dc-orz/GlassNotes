@@ -9,6 +9,13 @@ final class DesktopWindows {
     init(state: AppState) { self.state = state }
 
     func reconcile() {
+        let ids = Set(state.notes.map(\.id))
+        for id in windows.keys where !ids.contains(id) {
+            windows.removeValue(forKey: id)?.panel.close()
+        }
+        if let id = toast.noteID, !state.notes.contains(where: { $0.id == id && $0.completedAt != nil }) {
+            toast.hide()
+        }
         for note in state.notes {
             if let existing = windows[note.id] {
                 existing.update(note)
@@ -44,11 +51,11 @@ final class DesktopWindows {
         if entry.card.editing && !entry.save() { return }
         let frame = entry.panel.frame
         guard state.perform({ try state.library.complete(id) }) else { return }
-        toast.show(near: frame) { [weak self] in self?.restore(id) }
+        toast.show(for: id, near: frame) { [weak self] in self?.restore(id) }
     }
 
     func restore(_ id: UUID) {
-        if state.perform({ try state.library.restore(id) }) { toast.hide() }
+        state.perform { try state.library.restore(id) }
     }
 
     private func finishDismissal(_ id: UUID) {
