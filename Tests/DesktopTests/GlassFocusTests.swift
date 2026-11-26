@@ -30,10 +30,10 @@ extension NativeDesktopTests {
         }
         note.center()
         other.setFrameOrigin(NSPoint(x: note.frame.maxX, y: note.frame.minY))
-        let host = NSHostingView(rootView: GlassSurface(.desktopNote(NoteGlassAppearance(.clear))))
+        let host = NSHostingView(rootView: Color.clear.desktopNoteGlass(NoteGlassAppearance(.clear)))
         note.contentView = host
         for preset in GlassTransparency.allCases {
-            host.rootView = GlassSurface(.desktopNote(NoteGlassAppearance(preset)))
+            host.rootView = Color.clear.desktopNoteGlass(NoteGlassAppearance(preset))
             note.makeKeyAndOrderFront(nil)
             try await Task.sleep(for: .milliseconds(350))
             try #require(note.isKeyWindow)

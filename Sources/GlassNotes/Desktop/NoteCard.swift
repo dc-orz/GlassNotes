@@ -74,7 +74,7 @@ struct NoteCard: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .desktopNoteGlass(glass.selection)
+        .desktopNoteGlass(glass.selection, useNativeGlass: glass.usesNativeGlass)
         .opacity(dismissal.visibility)
         .onHover { hovering = $0 }
         .onChange(of: state.editing) { _, editing in editingFocus = editing }

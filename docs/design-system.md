@@ -4,12 +4,12 @@
 
 查看时，除右下角操作区外，整张玻璃都可拖动。悬停、窗口聚焦或启用旁白时，右下角依次显示「编辑」和「完成」。编辑态在同一位置呈现「取消、保存」。菜单保留 macOS 原生控件语义。视觉稿里的笔迹、玻璃和完成反馈分别有对应的运行时实现。
 
-早期视觉探索见[桌面全景](reference/glass-desktop.png)、[擦字分镜](reference/glass-erase.png)和 [v0.3 token 表](reference/glass-tokens-v0.3.pdf)。当前桌面采用下文的单一玻璃材质与白色笔迹。
+早期视觉探索见[桌面全景](reference/glass-desktop.png)、[擦字分镜](reference/glass-erase.png)和 [v0.3 token 表](reference/glass-tokens-v0.3.pdf)。当前桌面采用统一的材质设置与白色笔迹。
 
 | 设计职责 | 修改位置 | 使用约定 |
 | --- | --- | --- |
 | 语义值 | NoteDesign/Tokens.swift | 调整颜色、字号、留白、命中区、便签尺寸和动效时长时从这里改起 |
-| 材质 | GlassSurface | 每张便签一层玻璃。组件统一处理系统版本与减少透明度 |
+| 材质 | GlassSurface、desktopNoteGlass | 每张便签一层玻璃。组件统一处理系统版本与减少透明度 |
 | 字体 | Tokens.TypeStyle、InkContent、InkEditor | 标题用 24 pt Medium，正文与编辑器用 19 pt Regular。中英文共用 macOS 系统字体与字形回退，控制信息使用系统语义字号 |
 | 操作 | SymbolAction | 图标控件自带统一命中区、辅助功能标签和悬浮提示 |
 | 完成 | InkDismissal、InkWipe | 仅对文字施加擦除遮罩；玻璃层固定，最后整体淡出。恢复动作取消待执行的关闭 |
@@ -18,7 +18,7 @@
 
 桌面正文采用系统无衬线。标题靠字重和留白区分，笔迹质感集中在品牌图形与擦除动效上。应用通过系统 API 获取字体，随 macOS 选择适合语言的字形。若未来需要在多个平台固定中文排印，可评估 Noto Sans CJK SC；分发字体时须保留其版权声明与 SIL OFL 1.1 许可证。[Apple 字体指南](https://developer.apple.com/documentation/technologyoverviews/managing-the-fonts-for-your-app) · [Noto Sans CJK 官方许可](https://github.com/notofonts/noto-cjk/blob/main/Sans/LICENSE)
 
-桌面便签统一使用 `Tokens.NoteGlass`。窗口采用 Dark Aqua，笔迹为瓷白色 #F3F7FC。全局透明度有三个基础预设和两个连续参数，由 `GlassSurface` 只作用于玻璃层。阅读、原位编辑和归档恢复共用此设置。
+桌面便签统一使用 `Tokens.NoteGlass`。窗口采用 Dark Aqua，笔迹为瓷白色 #F3F7FC。默认的毛玻璃有三个基础预设和两个连续参数，由 `GlassSurface` 只作用于玻璃层。阅读、原位编辑和归档恢复共用此设置。
 
 | 预设 | 材质强度 | 背景压暗 |
 | --- | --- | --- |
@@ -30,8 +30,10 @@
 
 卡面采用 22 pt 连续圆角，边缘以局部白色柔光勾勒。桌面窗口关闭系统投影，让边缘的壁纸细节保持可见。
 
-桌面背景由固定为 `active` 的 AppKit 毛玻璃实时采样壁纸。模糊、边缘高光和压暗值均独立于输入焦点，保存或切换到另一张便签时保持一致。白色笔迹与操作图标独立于玻璃的材质强度。菜单栏面板与撤销提示在 macOS 26+ 继续使用原生 Liquid Glass。[Apple 材质活跃状态](https://developer.apple.com/documentation/appkit/nsvisualeffectview/state-swift.enum)
+默认的桌面背景由固定为 `active` 的 AppKit 毛玻璃实时采样壁纸。模糊、边缘高光和压暗值均独立于输入焦点，保存或切换到另一张便签时保持一致。白色笔迹与操作图标独立于玻璃的材质强度。菜单栏面板与撤销提示在 macOS 26+ 继续使用原生 Liquid Glass。[Apple 材质活跃状态](https://developer.apple.com/documentation/appkit/nsvisualeffectview/state-swift.enum)
 
-在「玻璃透明度」面板中，材质强度为 20% 到 100%，背景压暗为 0% 到 62%。显示值取整，存储值保留拖动精度。选择预设会恢复其两个初始值。开启系统「减少透明度」时使用实色，关闭后恢复此前的选择。
+macOS 26 及以上可在「玻璃透明度」面板开启「使用原生 Liquid Glass」。原生模式使用系统的 `.clear` 玻璃包裹便签内容，与毛玻璃共用圆角和白色笔迹。折射与窗口失焦时的过渡交给系统处理。开关默认关闭，切回毛玻璃后恢复上次的预设与滑块位置。
+
+在毛玻璃模式下，材质强度为 20% 到 100%，背景压暗为 0% 到 62%。显示值取整，存储值保留拖动精度。选择预设会恢复其两个初始值。开启系统「减少透明度」时使用实色，关闭后恢复此前的选择。
 
 新增功能先查上表。标准系统按钮、菜单、选择器可以直接组合，专属的品牌外观和运动曲线归入 NoteDesign。评审时检查正文较长的卡片、亮暗背景、减少透明度、减少动态效果和键盘操作。

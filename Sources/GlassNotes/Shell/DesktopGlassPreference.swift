@@ -4,6 +4,11 @@ import SwiftUI
 /// The original preset strings remain valid. Custom settings persist both channels in a single write.
 struct DesktopGlassPreference: DynamicProperty {
     @AppStorage("desktopGlassTransparency") private var stored = GlassTransparency.standard.rawValue
+    @AppStorage("desktopUsesNativeGlass") var prefersNativeGlass = false
+
+    var usesNativeGlass: Bool {
+        if #available(macOS 26.0, *) { prefersNativeGlass } else { false }
+    }
 
     var selection: NoteGlassAppearance {
         get {

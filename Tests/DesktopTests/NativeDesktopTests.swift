@@ -27,7 +27,7 @@ struct NativeDesktopTests {
         let defaults = try #require(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
 
-        func host(_ store: UserDefaults, observe: @escaping (Binding<NoteGlassAppearance>) -> Void) -> NSPanel {
+        func host(_ store: UserDefaults, observe: @escaping (DesktopGlassPreference) -> Void) -> NSPanel {
             let panel = NSPanel(
                 contentRect: CGRect(origin: .zero, size: Tokens.Size.shortNote),
                 styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
@@ -39,17 +39,23 @@ struct NativeDesktopTests {
         }
 
         defaults.set("low", forKey: "desktopGlassTransparency")  // Existing installations store a bare preset.
-        var selection: Binding<NoteGlassAppearance>?
+        var controls: DesktopGlassPreference?
         var displayed: NoteGlassAppearance?
-        let menu = host(defaults) { selection = $0 }
-        let note = host(defaults) { displayed = $0.wrappedValue }
+        var native = false
+        let menu = host(defaults) { controls = $0 }
+        let note = host(defaults) {
+            displayed = $0.selection
+            native = $0.usesNativeGlass
+        }
         defer {
             menu.close()
             note.close()
         }
         try await Task.sleep(for: .milliseconds(200))
-        let setting = try #require(selection)
+        let preferences = try #require(controls)
+        let setting = preferences.binding
         #expect(displayed == NoteGlassAppearance(.low))
+        #expect(!native)
         let custom = NoteGlassAppearance(.clear, materialOpacity: 0.5371, dimming: 0.0729)
         for level in GlassTransparency.allCases.map({ NoteGlassAppearance($0) }) {
             setting.wrappedValue = level
@@ -63,12 +69,29 @@ struct NativeDesktopTests {
         try await Task.sleep(for: .milliseconds(150))
         #expect(displayed == custom)
 
+        if #available(macOS 26.0, *) {
+            preferences.prefersNativeGlass = true
+            try await Task.sleep(for: .milliseconds(150))
+            #expect(native)
+        }
         let reopened = try #require(UserDefaults(suiteName: suite))
         var restored: NoteGlassAppearance?
-        let nextNote = host(reopened) { restored = $0.wrappedValue }
+        var restoredNative = false
+        let nextNote = host(reopened) {
+            restored = $0.selection
+            restoredNative = $0.usesNativeGlass
+        }
         defer { nextNote.close() }
         try await Task.sleep(for: .milliseconds(150))
         #expect(restored == custom)
+        if #available(macOS 26.0, *) {
+            #expect(restoredNative)
+            preferences.prefersNativeGlass = false
+            try await Task.sleep(for: .milliseconds(150))
+            #expect(!native)
+            #expect(!restoredNative)
+            #expect(displayed == custom)
+        }
         setting.wrappedValue = NoteGlassAppearance(.clear)
         try await Task.sleep(for: .milliseconds(150))
         #expect(displayed == NoteGlassAppearance(.clear))
@@ -217,10 +240,11 @@ struct NativeDesktopTests {
 
 private struct GlassPreferenceProbe: View {
     private var glass = DesktopGlassPreference()
-    let observe: (Binding<NoteGlassAppearance>) -> Void
+    let observe: (DesktopGlassPreference) -> Void
 
     var body: some View {
-        GlassSurface(.desktopNote(glass.selection))
-            .onChange(of: glass.selection, initial: true) { _, _ in observe(glass.binding) }
+        Color.clear.desktopNoteGlass(glass.selection, useNativeGlass: glass.usesNativeGlass)
+            .onChange(of: glass.selection, initial: true) { _, _ in observe(glass) }
+            .onChange(of: glass.usesNativeGlass) { _, _ in observe(glass) }
     }
 }

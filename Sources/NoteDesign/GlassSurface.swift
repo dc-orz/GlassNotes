@@ -42,19 +42,35 @@ public struct GlassSurface: View {
             }
         }
     }
-
 }
 
 extension View {
-    /// Keep the ink at full opacity while letting light wallpaper show through the material.
-    public func desktopNoteGlass(_ look: NoteGlassAppearance) -> some View {
-        let shadowStrength = look.base == .clear ? 1 : 1 - look.materialOpacity
-        return foregroundStyle(Tokens.NoteGlass.ink)
+    public func desktopNoteGlass(_ look: NoteGlassAppearance, useNativeGlass: Bool = false) -> some View {
+        modifier(DesktopNoteGlass(look: look, useNativeGlass: useNativeGlass))
+    }
+}
+
+private struct DesktopNoteGlass: ViewModifier {
+    let look: NoteGlassAppearance
+    let useNativeGlass: Bool
+    @Environment(\.accessibilityReduceTransparency) private var solid
+
+    func body(content: Content) -> some View {
+        let shadowStrength = useNativeGlass || look.base == .clear ? 1 : 1 - look.materialOpacity
+        let ink = content.foregroundStyle(Tokens.NoteGlass.ink)
             .shadow(
                 color: Tokens.NoteGlass.inkShadow.opacity(shadowStrength),
                 radius: Tokens.NoteGlass.inkShadowRadius, y: Tokens.NoteGlass.inkShadowOffset
             )
-            .background(GlassSurface(.desktopNote(look)))
+        let frosted = GlassSurface(.desktopNote(look))
+        if #available(macOS 26.0, *) {
+            let native = useNativeGlass && !solid
+            let shape = RoundedRectangle(cornerRadius: Tokens.NoteGlass.cornerRadius, style: .continuous)
+            ink.glassEffect(native ? .clear : .identity, in: shape)
+                .background { if !native { frosted } }
+        } else {
+            ink.background(frosted)
+        }
     }
 }
 
