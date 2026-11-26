@@ -6,7 +6,7 @@ public enum LibraryError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .alreadyOpen: "这份便签库已在另一个进程中打开。"
-        case .unknownVersion: "这份便签库来自更新的版本，请用新版墨笺打开。"
+        case .unknownVersion: "这份便签库来自更新的版本，请用新版 GlassNotes打开。"
         case .invalidData: "无法读取便签库。原文件已保留，可从备份恢复。"
         case .missingNote: "这张便签已不存在，请重新打开。"
         case .emptyNote: "请先写一点内容。"

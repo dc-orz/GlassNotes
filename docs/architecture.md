@@ -18,6 +18,10 @@
 
 NoteDesign/Tokens.swift 为运行时样式的唯一来源。模块内的玻璃组件在 macOS 26+ 调用系统 Liquid Glass，14–15 使用 NSVisualEffectView 的 behindWindow 混合。减少透明度时使用实色。桌面窗口和菜单通过 DesktopGlassPreference 订阅同一项 AppStorage 偏好。选择档位后，已打开的窗口就地刷新玻璃层，新建和恢复的窗口读取当前值。透明度独立于便签存档。存档 v1 中的 ink 字段仅作旧版读写兼容，原值在编辑时保留，新记录使用 chalk。桌面不采集屏幕内容。
 
-字体随应用授权打包，正文和标题使用同一套中文马克笔字形。菜单、按钮和错误信息使用系统字体。完成时从左至右擦字 180 ms，再淡出玻璃 120 ms；减少动态效果时整张淡出 80 ms。撤销浮条保留 5 秒，之后仍可从已完成列表恢复。
+标题和正文通过 SwiftUI 系统字体 API 渲染，按语言和字形覆盖回退。字体文件由 macOS 提供。标题使用中等字重，正文使用常规字重。完成时从左至右擦字 180 ms，再淡出玻璃 120 ms；减少动态效果时整张淡出 80 ms。撤销浮条保留 5 秒，之后仍可从已完成列表恢复。
 
-参考 [Apple 自定义 Liquid Glass](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views) 和 [霞鹜漫黑字体](https://github.com/lxgw/LxgwMarkerGothic)。字体源码版本为 1686033567898c451e08f8b6c0421975f27ac939，作者及授权文本随资源一起分发。
+参考 [Apple 自定义 Liquid Glass](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views) 和 [Apple 应用字体指南](https://developer.apple.com/documentation/technologyoverviews/managing-the-fonts-for-your-app)。
+
+## 后续方向
+
+优先打磨桌面材质、排版和记录流程。AI 功能留待有明确使用场景时再评估。

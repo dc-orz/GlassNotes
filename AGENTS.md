@@ -1,4 +1,4 @@
-# 墨笺仓库开发约定
+# GlassNotes 仓库开发约定
 
 修改前先读 README 和 docs/architecture.md。交付前运行 `make check`。打包用 `make app`，生成物放在 dist/。
 

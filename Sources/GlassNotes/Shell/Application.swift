@@ -41,7 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } catch {
             NSApp.activate()
             let alert = NSAlert(error: error)
-            alert.messageText = "无法打开墨笺"
+            alert.messageText = "无法打开 GlassNotes"
             alert.informativeText = error.localizedDescription
             alert.runModal()
             NSApp.terminate(nil)
@@ -69,7 +69,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let capture = appMenu.addItem(withTitle: "快速记录…", action: #selector(StatusMenu.show), keyEquivalent: "n")
         capture.target = menu
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "退出墨笺", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenu.addItem(
+            withTitle: "退出 GlassNotes", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         let appItem = NSMenuItem()
         appItem.submenu = appMenu
         bar.addItem(appItem)

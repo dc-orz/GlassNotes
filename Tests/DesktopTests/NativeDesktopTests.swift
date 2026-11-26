@@ -9,11 +9,6 @@ import Testing
 @Suite(.serialized)
 @MainActor
 struct NativeDesktopTests {
-    @Test func markerFontIsRegistered() {
-        #expect(MarkerFont.name.lowercased().contains("markergothic"))
-        #expect(NSFont(name: MarkerFont.name, size: 19) != nil)
-    }
-
     @Test(.enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"))
     func glassPreferenceUpdatesOpenWindowsAndSurvivesReopen() async throws {
         _ = NSApplication.shared
@@ -170,6 +165,8 @@ struct NativeDesktopTests {
         window.edit()
         try await Task.sleep(for: .milliseconds(250))
         let editor = try #require(window.panel.firstResponder as? NSTextView)
+        let bodyFont = try #require(editor.font)
+        #expect(bodyFont.familyName == NSFont.systemFont(ofSize: bodyFont.pointSize).familyName)
         let ink = try #require(editor.textColor?.usingColorSpace(.sRGB))
         #expect(min(ink.redComponent, ink.greenComponent, ink.blueComponent) > 0.9)
         window.card.draft = "修改后的中文 ✍"

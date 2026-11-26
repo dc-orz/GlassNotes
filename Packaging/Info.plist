@@ -2,13 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
 <key>CFBundleDevelopmentRegion</key><string>zh_CN</string>
-<key>CFBundleDisplayName</key><string>墨笺</string>
+<key>CFBundleDisplayName</key><string>GlassNotes</string>
 <key>CFBundleExecutable</key><string>GlassNotes</string>
 <key>CFBundleIdentifier</key><string>app.glassnotes.mac</string>
-<key>CFBundleName</key><string>墨笺</string>
+<key>CFBundleName</key><string>GlassNotes</string>
 <key>CFBundleIconFile</key><string>AppIcon</string>
-<key>CFBundleShortVersionString</key><string>0.1.3</string>
-<key>CFBundleVersion</key><string>4</string>
+<key>CFBundleShortVersionString</key><string>0.1.4</string>
+<key>CFBundleVersion</key><string>5</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>LSUIElement</key><true/>

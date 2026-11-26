@@ -17,17 +17,18 @@ public enum Tokens {
         public static let shortNote = CGSize(width: 256, height: 148)
         public static let longNote = CGSize(width: 336, height: 190)
         public static let menuWidth: CGFloat = 360
+        public static let menuBarMark = CGSize(width: 18, height: 18)
         public static let listHeight: CGFloat = 158
         public static let inputHeight: CGFloat = 76
         public static let toast = CGSize(width: 184, height: 48)
     }
 
     public enum TypeStyle {
-        public static let title = Font.custom(MarkerFont.name, fixedSize: 24)
-        public static let ink = Font.custom(MarkerFont.name, fixedSize: 19)
+        public static let title = Font.system(size: 24, weight: .medium)
+        public static let ink = Font.system(size: 19, weight: .regular)
         public static let heading = Font.headline
         public static let help = Font.caption
-        public static let markerLeading: CGFloat = 3
+        public static let bodyLineSpacing: CGFloat = 3
     }
 
     public enum Motion {

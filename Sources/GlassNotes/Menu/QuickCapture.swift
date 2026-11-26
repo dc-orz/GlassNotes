@@ -22,7 +22,7 @@ struct QuickCapture: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Tokens.Space.standard) {
             HStack {
-                Label("墨笺", systemImage: "pencil.tip").font(Tokens.TypeStyle.heading)
+                Text(verbatim: "GlassNotes").font(Tokens.TypeStyle.heading)
                 Spacer()
                 Menu {
                     Picker(
@@ -40,7 +40,7 @@ struct QuickCapture: View {
                         ForEach(CaptureShortcut.Choice.allCases, id: \.self) { Text($0.title).tag($0) }
                     }
                     Divider()
-                    Button("退出墨笺") { NSApp.terminate(nil) }.keyboardShortcut("q")
+                    Button("退出 GlassNotes") { NSApp.terminate(nil) }.keyboardShortcut("q")
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }

@@ -10,9 +10,13 @@
 | --- | --- | --- |
 | 语义值 | NoteDesign/Tokens.swift | 调整颜色、字号、留白、命中区、便签尺寸和动效时长时从这里改起 |
 | 材质 | GlassSurface | 每张便签一层玻璃。组件统一处理系统版本与减少透明度 |
-| 字体 | MarkerFont、InkContent、InkEditor | 正文与编辑器使用同一随包字体。第一行作为标题，其余保留换行，控制信息使用系统字体 |
+| 字体 | Tokens.TypeStyle、InkContent、InkEditor | 标题用 24 pt Medium，正文与编辑器用 19 pt Regular。中英文共用 macOS 系统字体与字形回退，控制信息使用系统语义字号 |
 | 操作 | SymbolAction | 图标控件自带统一命中区、辅助功能标签和悬浮提示 |
 | 完成 | InkDismissal、InkWipe | 仅对文字施加擦除遮罩；玻璃层固定，最后整体淡出。恢复动作取消待执行的关闭 |
+
+产品名统一写作 **GlassNotes**。应用图标以青绿色毛玻璃承载白色记号笔笔迹，菜单栏取同一笔迹的单色轮廓，由系统适配亮暗背景。图标原稿和打包资源见 [Packaging](../Packaging)。
+
+桌面正文采用系统无衬线。标题靠字重和留白区分，笔迹质感集中在品牌图形与擦除动效上。应用通过系统 API 获取字体，随 macOS 选择适合语言的字形。若未来需要在多个平台固定中文排印，可评估 Noto Sans CJK SC；分发字体时须保留其版权声明与 SIL OFL 1.1 许可证。[Apple 字体指南](https://developer.apple.com/documentation/technologyoverviews/managing-the-fonts-for-your-app) · [Noto Sans CJK 官方许可](https://github.com/notofonts/noto-cjk/blob/main/Sans/LICENSE)
 
 桌面便签统一使用 `Tokens.NoteGlass`。窗口采用 Dark Aqua，笔迹为瓷白色 #F3F7FC。全局透明度有三个档位，由 `GlassSurface` 只作用于玻璃层。阅读、原位编辑和归档恢复共用此设置。
 

@@ -1,48 +1,57 @@
-# 墨笺 · GlassNotes
+<img src="Packaging/AppIcon.png" alt="GlassNotes icon" width="80" height="80">
 
-以 Liquid Glass 为核心的极简 macOS 桌面便签。平时桌面上只留玻璃和白色笔迹，指针移入时再显示操作。
+# GlassNotes
 
-## 运行
+[简体中文](README.zh-CN.md)
 
-双击 `dist/墨笺.app`。首次启动会在桌面放入四张可编辑示例。点菜单栏的方框铅笔图标或按 **⌃⌥N**，输入内容后按 **⌘↩** 贴到桌面。快速记录面板的「…」菜单可以换快捷键或退出。
+GlassNotes is a native macOS menu bar app for short notes that live on your desktop. Each note is a separate pane of frosted glass. Arrange a few where you want them, glance at them between windows, and wipe them away when you're done.
 
-- **移动**　在查看状态，按住正文、边缘或空白处即可拖动整张便签。右下角留给操作按钮。普通应用窗口会盖住桌面便签。
-- **编辑**　点击右下角的铅笔，或在菜单栏的「桌面」列表选择一张便签。按 ⌘↩ 或点勾保存，Esc 取消。当正文较长时可滚动阅读。
-- **完成**　移入便签，点击右下角的勾。也可以在菜单栏列表中完成。撤销提示显示 5 秒，之后仍可在「已完成」中恢复。
-- **外观**　在菜单栏打开墨笺，点「…」→「玻璃透明度」，可选「通透」「标准」或「低透」。默认是「标准」。所有便签立即采用同一档，重启也会记住。调整只作用于玻璃，笔迹保留瓷白色。开启系统「减少透明度」时，便签使用实色，关闭后恢复所选档位。
+![Four desktop notes on glass, with English and Chinese text and the edit and complete buttons visible on one note](docs/preview.jpg)
 
-本机存储位于 `~/Library/Application Support/GlassNotes/notes.json`。退出应用后可以复制这个文件进行备份。首版提供本地纯文本便签；手写外观来自随包字体。程序可离线工作。
+## Install
 
-## 开发
+GlassNotes runs on macOS 14 or later. On macOS 26 and later it uses native Liquid Glass. Earlier supported versions use an AppKit frosted backdrop. The app interface is currently in Simplified Chinese.
 
-使用 macOS、Swift 6.2+ 和 macOS 26+ SDK。完整 Xcode 或包含这些版本的 Command Line Tools 均可。运行目标为 macOS 14+。macOS 26+ 使用原生 Liquid Glass，14–15 使用原生毛玻璃。构建默认针对当前 Mac 的架构，打包采用本地签名。
+If you have a GlassNotes DMG, open it and drag **GlassNotes.app** into **Applications**. The architecture is in the DMG filename. Choose `arm64` for Apple silicon. When upgrading, quit the running copy first. Your notes carry over automatically.
 
-| 命令 | 用途 |
+## Use GlassNotes
+
+| Action | How |
 | --- | --- |
-| `make check` | 检查格式、设计系统边界，并运行数据、布局和字体测试 |
-| `make smoke` | 在有桌面会话的 Mac 上短暂创建真实面板，验证拖动与按钮的命中范围、位置保存、编辑、完成和恢复 |
-| `make app` | 编译 Release，复制字体与图标，签名并校验，输出到 dist/ |
-| `make dmg` | 构建应用并生成带有「应用程序」快捷方式的只读安装镜像 |
-| `make fmt` | 用 Swift 工具链的格式化器整理 Swift 源码 |
+| Capture | Click the handwritten mark in the menu bar or press **⌃⌥N**. Enter a note and press **⌘↩** to place it on the desktop. |
+| Arrange | Drag the text, edge, or open area of a note. Regular app windows sit above your notes. |
+| Edit | Hover over the note and click the pencil in the lower-right corner. Press **⌘↩** to save or **Esc** to cancel. |
+| Complete and restore | Click the circled checkmark. The text wipes away and the glass fades. Undo within five seconds, or restore it later from **已完成** in the menu bar panel. |
+| Adjust the glass | Open **… → 玻璃透明度** and choose Clear, Standard, or Low Transparency. The choice applies to every note. Reduce Transparency and Reduce Motion follow macOS accessibility settings. |
 
-## 打包与分享
+The **…** menu also lets you change or disable the capture shortcut.
 
-在仓库根目录运行 `make dmg`。生成的 `dist/GlassNotes-<版本>-<架构>.dmg` 可直接发送给测试者。接收方双击镜像，将「墨笺」拖进 Applications，再从「应用程序」打开。文件名中的 `arm64` 表示适用于 Apple 芯片 Mac。
+## Local storage
 
-默认构建使用本地临时签名。通过网络分享时，接收方的 Mac 可能提示无法验证开发者。准备通过 GitHub Releases 公开分发时，应使用 Developer ID Application 签名，启用 Hardened Runtime 和安全时间戳，再对分发镜像签名，提交 Apple 公证并装订公证票据。详见 [Apple 站外打包指南](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution)。
+GlassNotes works offline. It stores note text, completion history, and desktop positions in `~/Library/Application Support/GlassNotes/notes.json`. Quit GlassNotes before copying or restoring that file. Appearance and shortcut preferences use macOS user defaults.
 
-## 仓库导航
+## Build from source
 
-| 目录 | 职责 |
+Install a Swift 6.2 or later toolchain with the macOS 26 SDK or later, plus Python 3 for the design checks. From the repository root run:
+
+```sh
+make app
+open dist/GlassNotes.app
+```
+
+| Command | Purpose |
 | --- | --- |
-| [NoteCore](Sources/NoteCore) | 存档、状态转换、便签布局与坐标 |
-| [NoteDesign](Sources/NoteDesign) | 视觉 token、玻璃、手写字、控件和擦字动效 |
-| [GlassNotes](Sources/GlassNotes) | 桌面窗口、菜单栏、快捷键、应用装配 |
-| [Tests](Tests) | 文件兼容、写入失败、布局、字体和原生窗口验证 |
+| `make check` | Check formatting and design conventions, then run the unit tests. |
+| `make smoke` | Exercise native windows in a logged-in Mac desktop session. |
+| `make fmt` | Format Swift sources. |
+| `make dmg` | Build the app and create a drag-to-install disk image in `dist/` for the build machine's architecture. |
 
-开发规则见 [AGENTS.md](AGENTS.md)，设计依据与分层决策见 [技术方案](docs/architecture.md)，组件的使用入口见 [设计系统](docs/design-system.md)。
+Local builds use an ad hoc signature. For public binary distribution, sign with Developer ID and notarize the disk image. [Apple's distribution guide](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution)
 
-## 项目待办
+## Contributing
 
-- [ ] 重新探索名称与图标。围绕透明玻璃上的白色笔迹，验证图标在 Mac 上小尺寸显示时的辨识度。
-- [ ] 后续评估 AI 功能。优先打磨现有玻璃材质、版式和基础交互。
+Keep storage and layout logic in [NoteCore](Sources/NoteCore), visual tokens and components in [NoteDesign](Sources/NoteDesign), and windows and menu interactions in [GlassNotes](Sources/GlassNotes). Before submitting a change, run `make check` and, for window interactions, `make smoke`. See the [architecture](docs/architecture.md), [design system](docs/design-system.md), and [repository conventions](AGENTS.md).
+
+## License
+
+[MIT License](LICENSE). GlassNotes renders text through the macOS system font APIs. The app package contains no font binaries.

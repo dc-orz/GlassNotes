@@ -4,6 +4,3 @@
 *.png binary
 *.pdf binary
 *.icns binary
-*.ttf binary
-# Keep the upstream license byte-for-byte.
-Sources/NoteDesign/Resources/OFL.txt -whitespace

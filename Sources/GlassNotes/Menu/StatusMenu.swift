@@ -18,8 +18,16 @@ final class StatusMenu: NSObject, NSWindowDelegate {
         self.shortcut = shortcut
         super.init()
         if let button = item.button {
-            button.image = NSImage(systemSymbolName: "square.and.pencil", accessibilityDescription: "墨笺")
-            button.toolTip = "墨笺 · 快速记录"
+            if let mark = Bundle.main.image(forResource: "MenuBarTemplate") {
+                mark.isTemplate = true
+                mark.size = Tokens.Size.menuBarMark
+                button.image = mark
+            } else {
+                button.image = NSImage(
+                    systemSymbolName: "square.and.pencil", accessibilityDescription: "GlassNotes")
+            }
+            button.setAccessibilityLabel("GlassNotes")
+            button.toolTip = "GlassNotes · 快速记录"
             button.target = self
             button.action = #selector(toggle)
         }

@@ -15,7 +15,7 @@ public struct InkContent: View {
             if lines.count > 1 {
                 Text(verbatim: String(lines[1]))
                     .font(Tokens.TypeStyle.ink)
-                    .lineSpacing(Tokens.TypeStyle.markerLeading)
+                    .lineSpacing(Tokens.TypeStyle.bodyLineSpacing)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
