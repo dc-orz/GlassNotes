@@ -14,7 +14,7 @@
 | 操作 | SymbolAction | 图标控件自带统一命中区、辅助功能标签和悬浮提示 |
 | 完成 | InkDismissal、InkWipe | 仅对文字施加擦除遮罩；玻璃层固定，最后整体淡出。恢复动作取消待执行的关闭 |
 
-产品名统一写作 **GlassNotes**。应用图标以青绿色为底，一片轻微倾斜的玻璃悬浮其上。偏移的投影拉开两层距离，炭黑色笔迹从左下起笔，掠过一高一低两道弧峰，向右下轻轻收细。菜单栏取同一笔迹的单色轮廓，由系统适配亮暗背景。图标原稿和打包资源见 [Packaging](../Packaging)。
+产品名统一写作 **GlassNotes**。应用图标以青绿色为底，一片轻微倾斜的玻璃悬浮其上。偏移的投影拉开两层距离，炭黑色笔迹从左下起笔，顺势挑出两道向右倾斜的弧峰。右峰高于左峰，末笔回落后向右上扬。菜单栏取同一笔迹的单色轮廓，由系统适配亮暗背景。图标原稿和打包资源见 [Packaging](../Packaging)。
 
 桌面正文采用系统无衬线。标题靠字重和留白区分，笔迹质感集中在品牌图形与擦除动效上。应用通过系统 API 获取字体，随 macOS 选择适合语言的字形。若未来需要在多个平台固定中文排印，可评估 Noto Sans CJK SC；分发字体时须保留其版权声明与 SIL OFL 1.1 许可证。[Apple 字体指南](https://developer.apple.com/documentation/technologyoverviews/managing-the-fonts-for-your-app) · [Noto Sans CJK 官方许可](https://github.com/notofonts/noto-cjk/blob/main/Sans/LICENSE)
 
