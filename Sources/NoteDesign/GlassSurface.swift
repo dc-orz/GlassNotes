@@ -12,7 +12,12 @@ public struct GlassSurface: View {
     public init(_ role: Role = .interface) { self.role = role }
 
     public var body: some View {
-        let shape = RoundedRectangle(cornerRadius: Tokens.Size.radius, style: .continuous)
+        let radius =
+            switch role {
+            case .interface: Tokens.Size.radius
+            case .desktopNote: Tokens.NoteGlass.cornerRadius
+            }
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
         if solid {
             shape.fill(Color(nsColor: .windowBackgroundColor))
         } else {
@@ -24,22 +29,15 @@ public struct GlassSurface: View {
                     FrostedBackdrop().clipShape(shape)
                 }
             case .desktopNote(let look):
-                if #available(macOS 26.0, *) {
-                    ZStack {
-                        FrostedBackdrop()
-                            .opacity(
-                                look.base == .clear
-                                    ? Tokens.NoteGlass.clearFrostCoverage : Tokens.NoteGlass.regularFrostCoverage)
-                        if look.base == .clear { Tokens.NoteGlass.clearSheen }
+                FrostedBackdrop(material: .hudWindow)
+                    .opacity(look.frostOpacity)
+                    .overlay(Color.black.opacity(look.dimming))
+                    .overlay {
+                        shape.strokeBorder(Tokens.NoteGlass.edgeLight, lineWidth: Tokens.NoteGlass.edgeWidth)
+                            .blur(radius: Tokens.NoteGlass.edgeSoftness)
+                            .opacity(look.materialOpacity)
                     }
                     .clipShape(shape)
-                    .overlay(shape.strokeBorder(Tokens.NoteGlass.rim, lineWidth: Tokens.NoteGlass.rimWidth))
-                    .opacity(look.materialOpacity)
-                    .overlay(shape.fill(.black.opacity(look.dimming)))
-                } else {
-                    FrostedBackdrop().opacity(look.materialOpacity)
-                        .overlay(Color.black.opacity(look.dimming)).clipShape(shape)
-                }
             }
         }
     }
@@ -59,13 +57,17 @@ extension View {
 }
 
 private struct FrostedBackdrop: NSViewRepresentable {
+    var material: NSVisualEffectView.Material = .popover
+
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
         view.blendingMode = .behindWindow
-        view.material = .popover
+        view.material = material
         view.state = .active
         return view
     }
 
-    func updateNSView(_ view: NSVisualEffectView, context: Context) {}
+    func updateNSView(_ view: NSVisualEffectView, context: Context) {
+        if view.material != material { view.material = material }
+    }
 }

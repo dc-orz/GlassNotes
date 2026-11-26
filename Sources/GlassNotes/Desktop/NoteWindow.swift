@@ -22,7 +22,7 @@ final class NoteWindow: NSObject, NSWindowDelegate {
         panel.isOpaque = false
         panel.appearance = NSAppearance(named: Tokens.NoteGlass.appearance)
         panel.backgroundColor = .clear
-        panel.hasShadow = true
+        panel.hasShadow = false
         panel.hidesOnDeactivate = false
         panel.level = Self.restingLevel
         panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]

@@ -49,13 +49,12 @@ public enum Tokens {
         static let standardDimming = 0.26
         static let clearGlassOpacity = 0.50
         static let clearFrostOpacity = 0.28
-        // The desktop rim and sheen belong to the material, independent of keyboard focus.
-        static let clearFrostCoverage = 0.16
-        static let regularFrostCoverage = 0.42
-        static let clearSheen = Color.white.opacity(0.22)
-        static let rimWidth: CGFloat = 1
-        static let rim = LinearGradient(
-            colors: [.white.opacity(0.64), .black.opacity(0.22), .white.opacity(0.34)],
+        static let cornerRadius: CGFloat = 22
+        static let frostResponseExponent = 5.0
+        static let edgeWidth: CGFloat = 1.5
+        static let edgeSoftness: CGFloat = 0.8
+        static let edgeLight = LinearGradient(
+            colors: [.white.opacity(0.38), .clear, .white.opacity(0.14)],
             startPoint: .topLeading, endPoint: .bottomTrailing)
         static let inkShadow = Color.black.opacity(0.62)
         static let inkShadowRadius: CGFloat = 1.3

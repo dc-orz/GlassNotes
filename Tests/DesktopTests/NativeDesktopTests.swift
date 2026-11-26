@@ -184,6 +184,7 @@ struct NativeDesktopTests {
         #expect(state.captureDraft.isEmpty)
         let note = try #require(state.notes.last)
         let window = try #require(desktop.windows[note.id])
+        #expect(!window.panel.hasShadow)
         #expect(window.panel.level == NoteWindow.restingLevel)
         window.edit()
         try await Task.sleep(for: .milliseconds(250))
