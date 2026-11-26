@@ -3,18 +3,20 @@ import SwiftUI
 
 public struct GlassSurface: View {
     @Environment(\.accessibilityReduceTransparency) private var solid
-    private let ink: InkStyle
+    public enum Role { case interface, desktopNote }
+    private let role: Role
 
-    public init(ink: InkStyle = .automatic) { self.ink = ink }
+    public init(_ role: Role = .interface) { self.role = role }
 
     public var body: some View {
+        let tint: Color = role == .desktopNote ? Tokens.NoteGlass.tint : .clear
         let shape = RoundedRectangle(cornerRadius: Tokens.Size.radius, style: .continuous)
         if solid {
             shape.fill(Color(nsColor: .windowBackgroundColor))
         } else if #available(macOS 26.0, *) {
-            Color.clear.glassEffect(.regular.tint(ink.backing), in: shape)
+            Color.clear.glassEffect(.regular.tint(tint), in: shape)
         } else {
-            FrostedBackdrop().overlay(ink.backing).clipShape(shape)
+            FrostedBackdrop().overlay(tint).clipShape(shape)
         }
     }
 }

@@ -32,40 +32,10 @@ public enum Tokens {
         public static let undoSeconds = 5
     }
 
-    public enum Palette {
-        public static let chalk = Color(red: 0.953, green: 0.969, blue: 0.988)
-        public static let carbon = Color(red: 0.125, green: 0.137, blue: 0.173)
-        public static let petrol = Color(red: 0.027, green: 0.282, blue: 0.345)
-        static let paleGlass = Color.white.opacity(0.24)
-        static let deepGlass = Color.black.opacity(0.26)
-    }
-}
-
-public enum InkStyle: Sendable {
-    case automatic, chalk, carbon, petrol
-
-    public var color: Color {
-        switch self {
-        case .automatic: .primary
-        case .chalk: Tokens.Palette.chalk
-        case .carbon: Tokens.Palette.carbon
-        case .petrol: Tokens.Palette.petrol
-        }
-    }
-
-    public var appearance: NSAppearance? {
-        switch self {
-        case .automatic: nil
-        case .chalk: NSAppearance(named: .darkAqua)
-        case .carbon, .petrol: NSAppearance(named: .aqua)
-        }
-    }
-
-    var backing: Color {
-        switch self {
-        case .automatic: .clear
-        case .chalk: Tokens.Palette.deepGlass
-        case .carbon, .petrol: Tokens.Palette.paleGlass
-        }
+    /// The desktop material and ink are shared by every note, including archived notes on restore.
+    public enum NoteGlass {
+        public static let appearance = NSAppearance.Name.darkAqua
+        static let tint = Color.black.opacity(0.26)
+        public static let ink = Color(red: 0.953, green: 0.969, blue: 0.988)
     }
 }

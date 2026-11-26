@@ -22,6 +22,7 @@ final class NoteWindow: NSObject, NSWindowDelegate {
         panel.title = note.title
         panel.isReleasedWhenClosed = false
         panel.isOpaque = false
+        panel.appearance = NSAppearance(named: Tokens.NoteGlass.appearance)
         panel.backgroundColor = .clear
         panel.hasShadow = true
         panel.hidesOnDeactivate = false
@@ -45,7 +46,6 @@ final class NoteWindow: NSObject, NSWindowDelegate {
     func update(_ note: Note) {
         if card.note != note { card.note = note }
         panel.title = note.title
-        panel.appearance = note.ink.style.appearance
         guard let screen = NSScreen.forNote(note) else { return }
         let frame = DesktopLayout.frame(
             for: note.placement, size: Self.size(for: note.text), in: screen.visibleFrame)
@@ -68,7 +68,7 @@ final class NoteWindow: NSObject, NSWindowDelegate {
     }
 
     @discardableResult func save() -> Bool {
-        let ok = state.perform { try state.library.edit(card.note.id, text: card.draft, ink: card.ink) }
+        let ok = state.perform { try state.library.edit(card.note.id, text: card.draft) }
         if ok { endEdit() }
         return ok
     }

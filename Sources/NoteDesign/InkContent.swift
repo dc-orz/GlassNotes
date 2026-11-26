@@ -2,11 +2,9 @@ import SwiftUI
 
 public struct InkContent: View {
     let text: String
-    let style: InkStyle
 
-    public init(_ text: String, style: InkStyle) {
+    public init(_ text: String) {
         self.text = text
-        self.style = style
     }
 
     public var body: some View {
@@ -20,7 +18,6 @@ public struct InkContent: View {
                     .lineSpacing(Tokens.TypeStyle.markerLeading)
             }
         }
-        .foregroundStyle(style.color)
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
     }

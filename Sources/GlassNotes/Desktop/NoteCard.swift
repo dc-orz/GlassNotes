@@ -9,18 +9,15 @@ final class CardState: ObservableObject {
     @Published var editing = false
     @Published var keyWindow = false
     @Published var draft: String
-    @Published var ink: Ink
 
     init(_ note: Note) {
         self.note = note
         draft = note.text
-        ink = note.ink
     }
 
     func beginEditing() {
         guard !editing, note.completedAt == nil else { return }
         draft = note.text
-        ink = note.ink
         editing = true
     }
 }
@@ -40,14 +37,13 @@ struct NoteCard: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            GlassSurface(ink: state.note.ink.style)
+            GlassSurface(.desktopNote)
             VStack(alignment: .leading, spacing: Tokens.Space.tight) {
                 WindowGrip().frame(height: Tokens.Size.grip).accessibilityHidden(true)
                 if state.editing {
                     InkEditor(text: $state.draft, label: "便签内容")
                         .focused($editingFocus)
                     HStack {
-                        InkPicker(selection: $state.ink)
                         Spacer()
                         SymbolAction("取消编辑", symbol: "xmark", action: cancel)
                             .keyboardShortcut(.cancelAction)
@@ -57,7 +53,7 @@ struct NoteCard: View {
                     }
                 } else {
                     ScrollView {
-                        InkContent(state.note.text, style: state.note.ink.style)
+                        InkContent(state.note.text)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .contentShape(Rectangle())
@@ -71,12 +67,12 @@ struct NoteCard: View {
             .padding(.bottom, Tokens.Space.small)
             if !state.editing && state.note.completedAt == nil {
                 SymbolAction("完成便签", symbol: "checkmark.circle", action: complete)
-                    .foregroundStyle(state.note.ink.style.color)
                     .opacity(hovering || state.keyWindow || voiceOver ? 1 : 0)
                     .padding(Tokens.Space.tight)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             }
         }
+        .foregroundStyle(Tokens.NoteGlass.ink)
         .opacity(dismissal.visibility)
         .onHover { hovering = $0 }
         .onChange(of: state.editing) { _, editing in editingFocus = editing }

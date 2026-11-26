@@ -7,7 +7,6 @@ final class AppState: ObservableObject {
     let library: NoteLibrary
     @Published private(set) var notes: [Note]
     @Published var captureDraft = ""
-    @Published var captureInk = Ink.automatic
     var changed: (() -> Void)?
 
     init(library: NoteLibrary) {
@@ -38,15 +37,15 @@ final class AppState: ObservableObject {
 enum InitialNotes {
     static func make(display: String) -> [Note] {
         [
-            Note(text: "记得带伞 ☂", ink: .chalk, placement: .init(display: display, x: 0.13, y: 0.16)),
+            Note(text: "记得带伞 ☂", placement: .init(display: display, x: 0.13, y: 0.16)),
             Note(
-                text: "周五前发报价\n核对印刷和装订费用，\n把新版发给小陈。", ink: .carbon,
+                text: "周五前发报价\n核对印刷和装订费用，\n把新版发给小陈。",
                 placement: .init(display: display, x: 0.77, y: 0.32)),
             Note(
-                text: "周末看展\n周六下午去美术馆", ink: .petrol,
+                text: "周末看展\n周六下午去美术馆",
                 placement: .init(display: display, x: 0.18, y: 0.68)),
             Note(
-                text: "看展清单\n带速写本和铅笔", ink: .petrol,
+                text: "看展清单\n带速写本和铅笔",
                 placement: .init(display: display, x: 0.50, y: 0.80)),
         ]
     }

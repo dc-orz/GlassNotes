@@ -32,7 +32,7 @@ final class DesktopWindows {
             size: NoteWindow.size(for: state.captureDraft),
             screen: screen.visibleFrame, display: screen.displayKey, occupied: occupied)
         guard
-            state.perform({ try state.library.add(text: state.captureDraft, ink: state.captureInk, at: placement) }
+            state.perform({ try state.library.add(text: state.captureDraft, at: placement) }
             )
         else { return false }
         state.captureDraft = ""

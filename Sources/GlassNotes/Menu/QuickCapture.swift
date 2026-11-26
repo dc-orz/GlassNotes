@@ -43,7 +43,6 @@ struct QuickCapture: View {
             }
             .frame(height: Tokens.Size.inputHeight)
             HStack {
-                InkPicker(selection: $state.captureInk)
                 Spacer()
                 Button("贴到桌面") { if desktop.addDraft() { close() } }
                     .buttonStyle(.borderedProminent)

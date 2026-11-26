@@ -49,17 +49,14 @@ public enum LibraryError: LocalizedError {
         }
     }
 
-    public func add(text: String, ink: Ink, at position: Placement) throws {
-        let note = Note(text: try Self.content(text), ink: ink, placement: position)
+    public func add(text: String, at position: Placement) throws {
+        let note = Note(text: try Self.content(text), placement: position)
         try commit(notes + [note])
     }
 
-    public func edit(_ id: UUID, text: String, ink: Ink) throws {
+    public func edit(_ id: UUID, text: String) throws {
         let text = try Self.content(text)
-        try update(id) {
-            $0.text = text
-            $0.ink = ink
-        }
+        try update(id) { $0.text = text }
     }
 
     public func move(_ id: UUID, to position: Placement) throws {

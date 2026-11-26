@@ -56,6 +56,15 @@ struct NativeDesktopTests {
         desktop.reconcile()
         defer { for w in desktop.windows.values { w.panel.close() } }
         #expect(desktop.windows.count == 4)
+        let previousAppearance = NSApp.appearance
+        defer { NSApp.appearance = previousAppearance }
+        for appearance in [NSAppearance.Name.aqua, .darkAqua] {
+            NSApp.appearance = NSAppearance(named: appearance)
+            #expect(
+                desktop.windows.values.allSatisfy {
+                    $0.panel.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+                })
+        }
         let frames = desktop.windows.mapValues { $0.panel.frame }
         state.captureDraft = "新记录"
         #expect(desktop.addDraft())
@@ -65,7 +74,9 @@ struct NativeDesktopTests {
         #expect(window.panel.level == NoteWindow.restingLevel)
         window.edit()
         try await Task.sleep(for: .milliseconds(250))
-        #expect(window.panel.firstResponder is NSTextView)
+        let editor = try #require(window.panel.firstResponder as? NSTextView)
+        let ink = try #require(editor.textColor?.usingColorSpace(.sRGB))
+        #expect(min(ink.redComponent, ink.greenComponent, ink.blueComponent) > 0.9)
         window.card.draft = "修改后的中文 ✍"
         #expect(window.save())
         #expect(window.card.note.text == "修改后的中文 ✍")
@@ -79,6 +90,7 @@ struct NativeDesktopTests {
         #expect(desktop.windows[note.id] == nil)
         desktop.restore(note.id)
         #expect(desktop.windows[note.id]?.panel.frame == window.panel.frame)
+        #expect(desktop.windows[note.id]?.panel.appearance?.name == .darkAqua)
         for (id, frame) in frames { #expect(desktop.windows[id]?.panel.frame == frame) }
     }
 }
