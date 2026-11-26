@@ -19,6 +19,15 @@ public enum Tokens {
         public static let toast = CGSize(width: 184, height: 48)
     }
 
+    /// Optical spacing for the compact menu bar template, in points.
+    enum MenuBar {
+        static let horizontalInset: CGFloat = 0.5
+        static let verticalInset: CGFloat = 1
+        static let lineWidth: CGFloat = 1.35
+        static let cornerRadius: CGFloat = 3.8
+        static let inkInset: CGFloat = 2.5
+    }
+
     public enum TypeStyle {
         public static let title = Font.system(size: 24, weight: .medium)
         public static let ink = Font.system(size: 19, weight: .regular)

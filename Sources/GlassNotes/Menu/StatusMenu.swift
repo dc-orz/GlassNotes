@@ -19,9 +19,7 @@ final class StatusMenu: NSObject, NSWindowDelegate {
         super.init()
         if let button = item.button {
             if let mark = Bundle.main.image(forResource: "MenuBarTemplate") {
-                mark.isTemplate = true
-                mark.size = Tokens.Size.menuBarMark
-                button.image = mark
+                button.image = MenuBarMark.image(ink: mark)
             } else {
                 button.image = NSImage(
                     systemSymbolName: "square.and.pencil", accessibilityDescription: "GlassNotes")
