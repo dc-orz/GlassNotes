@@ -44,6 +44,57 @@ struct NativeDesktopTests {
     }
 
     @Test(.enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"))
+    func readingSurfaceMovesExceptForTheTwoCornerButtons() async throws {
+        _ = NSApplication.shared
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let screen = try #require(NSScreen.main)
+        let library = try NoteLibrary(directory: folder) { InitialNotes.make(display: screen.displayKey) }
+        let state = AppState(library: library)
+        let desktop = DesktopWindows(state: state)
+        state.changed = { [weak desktop] in desktop?.reconcile() }
+        desktop.reconcile()
+        defer { for window in desktop.windows.values { window.panel.close() } }
+        let note = try #require(library.notes.first)
+        let window = try #require(desktop.windows[note.id])
+        let panel = window.panel
+        panel.makeKeyAndOrderFront(nil)
+        try await Task.sleep(for: .milliseconds(200))
+        let size = panel.frame.size
+        let midpoint = CGPoint(x: size.width / 2, y: size.height / 2)
+        let body = CGPoint(x: Tokens.Space.inset * 2, y: size.height - Tokens.Space.inset * 2)
+        let lowerLeft = CGPoint(x: Tokens.Space.small, y: Tokens.Space.small)
+        let endButton = CGPoint(
+            x: size.width - Tokens.Space.tight - Tokens.Size.action / 2,
+            y: Tokens.Space.tight + Tokens.Size.action / 2)
+        let editButton = CGPoint(x: endButton.x - Tokens.Size.action - Tokens.Space.tight, y: endButton.y)
+        for point in [body, midpoint, lowerLeft, CGPoint(x: size.width - 2, y: size.height / 2)] {
+            #expect(panel.isMoveArea(at: point))
+        }
+        #expect(!panel.isMoveArea(at: editButton))
+        #expect(!panel.isMoveArea(at: endButton))
+        // Just outside the toolbar, even the narrow margin remains draggable.
+        #expect(panel.isMoveArea(at: CGPoint(x: editButton.x - Tokens.Size.action / 2 - 1, y: endButton.y)))
+
+        let destination = DesktopLayout.frame(
+            for: Placement(display: screen.displayKey, x: 0.35, y: 0.42), size: size, in: screen.visibleFrame)
+        panel.setFrameOrigin(destination.origin)
+        try await Task.sleep(for: .milliseconds(150))
+        let savedNote = try #require(library.notes.first { $0.id == note.id })
+        #expect(DesktopLayout.frame(for: savedNote.placement, size: size, in: screen.visibleFrame) == destination)
+
+        window.edit()
+        try await Task.sleep(for: .milliseconds(200))
+        #expect(!panel.isMoveArea(at: body))
+        let editor = try #require(panel.firstResponder as? NSTextView)
+        editor.setSelectedRange(NSRange(location: 0, length: 2))
+        #expect(editor.selectedRange().length == 2)
+        window.endEdit()
+        try await Task.sleep(for: .milliseconds(100))
+        #expect(panel.isMoveArea(at: body))
+    }
+
+    @Test(.enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"))
     func nativeWindowLifecycle() async throws {
         _ = NSApplication.shared
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)

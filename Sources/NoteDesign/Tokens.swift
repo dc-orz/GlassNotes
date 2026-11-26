@@ -10,7 +10,6 @@ public enum Tokens {
     public enum Size {
         public static let radius: CGFloat = 16
         public static let action: CGFloat = 32
-        public static let grip: CGFloat = 18
         public static let shortNote = CGSize(width: 256, height: 148)
         public static let longNote = CGSize(width: 336, height: 190)
         public static let menuWidth: CGFloat = 360

@@ -7,7 +7,7 @@ import SwiftUI
 @MainActor
 final class NoteWindow: NSObject, NSWindowDelegate {
     static let restingLevel = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.desktopIconWindow)) + 1)
-    let panel: KeyablePanel
+    let panel: NotePanel
     let card: CardState
     let state: AppState
     private var positioning = false
@@ -15,9 +15,7 @@ final class NoteWindow: NSObject, NSWindowDelegate {
     init(_ note: Note, state: AppState, complete: @escaping () -> Void, dismissed: @escaping () -> Void) {
         self.state = state
         card = CardState(note)
-        panel = KeyablePanel(
-            contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel],
-            backing: .buffered, defer: false)
+        panel = NotePanel(card: card)
         super.init()
         panel.title = note.title
         panel.isReleasedWhenClosed = false

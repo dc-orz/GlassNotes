@@ -36,40 +36,41 @@ struct NoteCard: View {
     @StateObject private var dismissal = InkDismissal()
 
     var body: some View {
-        ZStack(alignment: .top) {
+        ZStack(alignment: .bottomTrailing) {
             GlassSurface(.desktopNote)
-            VStack(alignment: .leading, spacing: Tokens.Space.tight) {
-                WindowGrip().frame(height: Tokens.Size.grip).accessibilityHidden(true)
+            Group {
                 if state.editing {
                     InkEditor(text: $state.draft, label: "便签内容")
                         .focused($editingFocus)
-                    HStack {
-                        Spacer()
-                        SymbolAction("取消编辑", symbol: "xmark", action: cancel)
-                            .keyboardShortcut(.cancelAction)
-                        SymbolAction("保存便签", symbol: "checkmark", action: save)
-                            .keyboardShortcut(.return, modifiers: .command)
-                            .disabled(state.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    }
                 } else {
                     ScrollView {
                         InkContent(state.note.text)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .contentShape(Rectangle())
-                    .onTapGesture(perform: edit)
                     .accessibilityAction(named: "编辑", edit)
                     .accessibilityAction(named: "完成", complete)
                     .mask(InkWipe(progress: dismissal.wipe))
                 }
             }
-            .padding(.horizontal, Tokens.Space.inset)
-            .padding(.bottom, Tokens.Space.small)
-            if !state.editing && state.note.completedAt == nil {
-                SymbolAction("完成便签", symbol: "checkmark.circle", action: complete)
-                    .opacity(hovering || state.keyWindow || voiceOver ? 1 : 0)
-                    .padding(Tokens.Space.tight)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+            .padding([.horizontal, .top], Tokens.Space.inset)
+            .padding(.bottom, Tokens.Size.action + Tokens.Space.small)
+
+            if state.note.completedAt == nil {
+                HStack(spacing: Tokens.Space.tight) {
+                    if state.editing {
+                        SymbolAction("取消编辑", symbol: "xmark", action: cancel)
+                            .keyboardShortcut(.cancelAction)
+                        SymbolAction("保存便签", symbol: "checkmark", action: save)
+                            .keyboardShortcut(.return, modifiers: .command)
+                            .disabled(state.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    } else {
+                        SymbolAction("编辑便签", symbol: "pencil", action: edit)
+                        SymbolAction("完成便签", symbol: "checkmark.circle", action: complete)
+                    }
+                }
+                .opacity(state.editing || hovering || state.keyWindow || voiceOver ? 1 : 0)
+                .background(NoteActionBounds().accessibilityHidden(true))
+                .padding(Tokens.Space.tight)
             }
         }
         .foregroundStyle(Tokens.NoteGlass.ink)
@@ -80,23 +81,5 @@ struct NoteCard: View {
             await dismissal.present(
                 completed: state.note.completedAt != nil, reduceMotion: reducedMotion, didFinish: dismissed)
         }
-        .contextMenu {
-            Button("编辑便签", action: edit)
-            Button("完成便签", action: complete).disabled(state.editing)
-        }
     }
-
-}
-
-private struct WindowGrip: NSViewRepresentable {
-    final class Grip: NSView {
-        override func mouseDown(with event: NSEvent) { window?.performDrag(with: event) }
-        override func resetCursorRects() {
-            super.resetCursorRects()
-            addCursorRect(bounds, cursor: .openHand)
-        }
-        override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
-    }
-    func makeNSView(context: Context) -> Grip { Grip() }
-    func updateNSView(_ view: Grip, context: Context) {}
 }
