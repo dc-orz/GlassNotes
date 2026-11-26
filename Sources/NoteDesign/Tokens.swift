@@ -1,9 +1,5 @@
 import SwiftUI
 
-public enum GlassTransparency: String, Sendable {
-    case clear, standard, low
-}
-
 /// Runtime design tokens. Native glass owns optical effects such as lensing and blur.
 public enum Tokens {
     public enum Space {
@@ -39,18 +35,14 @@ public enum Tokens {
     /// The desktop material and ink are shared by every note, including archived notes on restore.
     public enum NoteGlass {
         public static let appearance = NSAppearance.Name.darkAqua
+        public static let materialRange = 0.20...1.00
+        public static let dimmingRange = 0.00...0.62
+        static let standardDimming = 0.26
         static let clearGlassOpacity = 0.50
         static let clearFrostOpacity = 0.28
         static let inkShadow = Color.black.opacity(0.62)
         static let inkShadowRadius: CGFloat = 1.3
         static let inkShadowOffset: CGFloat = 0.5
-        static func shade(for transparency: GlassTransparency) -> Color {
-            switch transparency {
-            case .clear: Color.clear
-            case .standard: Color.black.opacity(0.26)
-            case .low: Color.black.opacity(0.62)
-            }
-        }
         public static let ink = Color(red: 0.953, green: 0.969, blue: 0.988)
     }
 }

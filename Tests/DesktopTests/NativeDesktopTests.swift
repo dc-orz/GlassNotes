@@ -9,6 +9,17 @@ import Testing
 @Suite(.serialized)
 @MainActor
 struct NativeDesktopTests {
+    @Test func continuousGlassValuesRespectDesignLimits() {
+        let outOfRange = NoteGlassAppearance(.clear, materialOpacity: -1, dimming: 1)
+        #expect(outOfRange.materialOpacity == Tokens.NoteGlass.materialRange.lowerBound)
+        #expect(outOfRange.dimming == Tokens.NoteGlass.dimmingRange.upperBound)
+        #expect(
+            NoteGlassAppearance(.clear, materialOpacity: .nan, dimming: .infinity) == NoteGlassAppearance(.clear))
+        let fractional = NoteGlassAppearance(.clear, materialOpacity: 0.42367, dimming: 0.08291)
+        #expect(fractional.materialOpacity == 0.42367)
+        #expect(fractional.dimming == 0.08291)
+    }
+
     @Test(.enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"))
     func glassPreferenceUpdatesOpenWindowsAndSurvivesReopen() async throws {
         _ = NSApplication.shared
@@ -16,7 +27,7 @@ struct NativeDesktopTests {
         let defaults = try #require(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
 
-        func host(_ store: UserDefaults, observe: @escaping (Binding<GlassTransparency>) -> Void) -> NSPanel {
+        func host(_ store: UserDefaults, observe: @escaping (Binding<NoteGlassAppearance>) -> Void) -> NSPanel {
             let panel = NSPanel(
                 contentRect: CGRect(origin: .zero, size: Tokens.Size.shortNote),
                 styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
@@ -27,8 +38,9 @@ struct NativeDesktopTests {
             return panel
         }
 
-        var selection: Binding<GlassTransparency>?
-        var displayed: GlassTransparency?
+        defaults.set("low", forKey: "desktopGlassTransparency")  // Existing installations store a bare preset.
+        var selection: Binding<NoteGlassAppearance>?
+        var displayed: NoteGlassAppearance?
         let menu = host(defaults) { selection = $0 }
         let note = host(defaults) { displayed = $0.wrappedValue }
         defer {
@@ -37,19 +49,30 @@ struct NativeDesktopTests {
         }
         try await Task.sleep(for: .milliseconds(200))
         let setting = try #require(selection)
-        #expect(displayed == .standard)
-        for level in [GlassTransparency.clear, .standard, .low] {
+        #expect(displayed == NoteGlassAppearance(.low))
+        let custom = NoteGlassAppearance(.clear, materialOpacity: 0.5371, dimming: 0.0729)
+        for level in GlassTransparency.allCases.map({ NoteGlassAppearance($0) }) {
             setting.wrappedValue = level
             try await Task.sleep(for: .milliseconds(150))
             #expect(displayed == level)
         }
 
+        setting.wrappedValue = NoteGlassAppearance(.clear)
+        setting.materialOpacity.wrappedValue = custom.materialOpacity
+        setting.dimming.wrappedValue = custom.dimming
+        try await Task.sleep(for: .milliseconds(150))
+        #expect(displayed == custom)
+
         let reopened = try #require(UserDefaults(suiteName: suite))
-        var restored: GlassTransparency?
+        var restored: NoteGlassAppearance?
         let nextNote = host(reopened) { restored = $0.wrappedValue }
         defer { nextNote.close() }
         try await Task.sleep(for: .milliseconds(150))
-        #expect(restored == .low)
+        #expect(restored == custom)
+        setting.wrappedValue = NoteGlassAppearance(.clear)
+        try await Task.sleep(for: .milliseconds(150))
+        #expect(displayed == NoteGlassAppearance(.clear))
+        #expect(reopened.string(forKey: "desktopGlassTransparency") == "clear")
     }
 
     @Test(.enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"))
@@ -189,10 +212,10 @@ struct NativeDesktopTests {
 
 private struct GlassPreferenceProbe: View {
     private var glass = DesktopGlassPreference()
-    let observe: (Binding<GlassTransparency>) -> Void
+    let observe: (Binding<NoteGlassAppearance>) -> Void
 
     var body: some View {
         GlassSurface(.desktopNote(glass.selection))
-            .onChange(of: glass.selection, initial: true) { _, _ in observe(glass.$selection) }
+            .onChange(of: glass.selection, initial: true) { _, _ in observe(glass.binding) }
     }
 }

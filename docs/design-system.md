@@ -18,7 +18,7 @@
 
 桌面正文采用系统无衬线。标题靠字重和留白区分，笔迹质感集中在品牌图形与擦除动效上。应用通过系统 API 获取字体，随 macOS 选择适合语言的字形。若未来需要在多个平台固定中文排印，可评估 Noto Sans CJK SC；分发字体时须保留其版权声明与 SIL OFL 1.1 许可证。[Apple 字体指南](https://developer.apple.com/documentation/technologyoverviews/managing-the-fonts-for-your-app) · [Noto Sans CJK 官方许可](https://github.com/notofonts/noto-cjk/blob/main/Sans/LICENSE)
 
-桌面便签统一使用 `Tokens.NoteGlass`。窗口采用 Dark Aqua，笔迹为瓷白色 #F3F7FC。全局透明度有三个档位，由 `GlassSurface` 只作用于玻璃层。阅读、原位编辑和归档恢复共用此设置。
+桌面便签统一使用 `Tokens.NoteGlass`。窗口采用 Dark Aqua，笔迹为瓷白色 #F3F7FC。全局透明度有三个基础预设和两个连续参数，由 `GlassSurface` 只作用于玻璃层。阅读、原位编辑和归档恢复共用此设置。
 
 | 档位 | macOS 26 及以上 | macOS 14–15 |
 | --- | --- | --- |
@@ -26,6 +26,6 @@
 | 标准（默认） | Regular Liquid Glass，26% 黑色着色，沿用原版外观 | 原生毛玻璃叠加 26% 黑色 |
 | 低透 | 标准玻璃下衬 62% 黑色，进一步压低壁纸明暗反差 | 原生毛玻璃叠加 62% 黑色 |
 
-通透档只减弱材质层，文字和操作图标保持原有颜色，在笔画边缘带轻微暗影。材质层不透明度控制系统玻璃参与合成的程度，黑色着色和衬底控制明暗。系统决定模糊半径和折射，最终的视觉透光率取决于壁纸。开启系统「减少透明度」时三个档位都显示为实色，菜单提示原因，关闭后继续使用此前的选择。快速记录面板及撤销提示沿用系统界面材质。参考 [Apple 的 Clear Glass 使用说明](https://developer.apple.com/documentation/swiftui/glass/clear)。
+通透档只减弱材质层，文字和操作图标保持原有颜色，在笔画边缘带轻微暗影。材质层不透明度控制系统玻璃参与合成的程度，黑色着色和衬底控制明暗。系统决定模糊半径和折射，最终的视觉透光率取决于壁纸。在「玻璃透明度」面板中，材质强度可在 20% 到 100% 之间连续调节，背景压暗可在 0% 到 62% 之间连续调节。显示值取整，存储值保留拖动精度。macOS 26+ 的通透材质直接增加黑色衬底，Regular 材质先增加原生着色，超过 26% 后逐渐加强黑色衬底，直至与低透预设一致。macOS 14–15 将压暗值用于黑色遮罩。减弱 Regular 材质时，笔迹暗影随之增强。选择预设会恢复其两个初始值。开启系统「减少透明度」时所有便签都显示为实色，面板暂停调节并提示原因，关闭后继续使用此前的选择。快速记录面板及撤销提示沿用系统界面材质。参考 [Apple 的 Clear Glass 使用说明](https://developer.apple.com/documentation/swiftui/glass/clear)。
 
 新增功能先查上表。标准系统按钮、菜单、选择器可以直接组合，专属的品牌外观和运动曲线归入 NoteDesign。评审时检查正文较长的卡片、亮暗背景、减少透明度、减少动态效果和键盘操作。

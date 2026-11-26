@@ -22,7 +22,7 @@ If you have a GlassNotes DMG, open it and drag **GlassNotes.app** into **Applica
 | Arrange | Drag the text, edge, or open area of a note. Regular app windows sit above your notes. |
 | Edit | Hover over the note and click the pencil in the lower-right corner. Press **⌘↩** to save or **Esc** to cancel. |
 | Complete and restore | Click the circled checkmark. The text wipes away and the glass fades. Undo within five seconds, or restore it later from **已完成** in the menu bar panel. |
-| Adjust the glass | Open **… → 玻璃透明度** and choose Clear, Standard, or Low Transparency. The choice applies to every note. Reduce Transparency and Reduce Motion follow macOS accessibility settings. |
+| Adjust the glass | Open **… → 玻璃透明度** and choose a starting preset. Drag **材质强度** (material opacity, 20–100%) and **背景压暗** (background dimming, 0–62%) to update every note live. Use **恢复** to restore the selected preset. Reduce Transparency and Reduce Motion follow macOS accessibility settings. |
 
 The **…** menu also lets you change or disable the capture shortcut.
 
