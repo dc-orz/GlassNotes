@@ -18,7 +18,7 @@
 
 ## 设计系统
 
-NoteDesign/Tokens.swift 为运行时样式的唯一来源。模块内的玻璃组件在 macOS 26+ 调用系统 Liquid Glass，14–15 使用 NSVisualEffectView 的 behindWindow 混合。减少透明度时使用实色。桌面窗口和菜单通过 DesktopGlassPreference 订阅同一项 AppStorage 偏好。预设仍按原有字符串保存，自定义值在同一偏好键中一次写入基础预设、材质不透明度及压暗值。拖动滑块或恢复预设后，已打开的窗口就地刷新玻璃层，新建和恢复的窗口读取当前值。透明度独立于便签存档。存档 v1 中的 ink 字段仅作旧版读写兼容，原值在编辑时保留，新记录使用 chalk。桌面不采集屏幕内容。
+NoteDesign/Tokens.swift 为运行时样式的唯一来源。桌面材质使用 NSVisualEffectView 的 behindWindow 混合并固定为 active，编辑、保存和失焦时共用同一块背景。macOS 26+ 的菜单栏面板与撤销提示使用系统 Liquid Glass，14–15 的界面使用 AppKit 毛玻璃。减少透明度时使用实色。桌面窗口和菜单通过 DesktopGlassPreference 订阅同一项 AppStorage 偏好。预设仍按原有字符串保存，自定义值在同一偏好键中一次写入基础预设、材质不透明度及压暗值。拖动滑块或恢复预设后，已打开的窗口就地刷新玻璃层，新建和恢复的窗口读取当前值。透明度独立于便签存档。存档 v1 中的 ink 字段仅作旧版读写兼容，原值在编辑时保留，新记录使用 chalk。桌面不采集屏幕内容。
 
 标题和正文通过 SwiftUI 系统字体 API 渲染，按语言和字形覆盖回退。字体文件由 macOS 提供。标题使用中等字重，正文使用常规字重。完成时从左至右擦字 180 ms，再淡出玻璃 120 ms；减少动态效果时整张淡出 80 ms。撤销浮条保留 5 秒，之后仍可从已完成列表恢复。
 

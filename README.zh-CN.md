@@ -10,7 +10,7 @@ GlassNotes 是一款原生 macOS 菜单栏便签。每张便签都是一块独�
 
 ## 安装
 
-支持 macOS 14 及以上。macOS 26 及以上使用原生 Liquid Glass，更早的受支持版本使用 AppKit 毛玻璃。当前应用界面为简体中文。
+支持 macOS 14 及以上。桌面便签使用焦点切换时亮度稳定的 AppKit 毛玻璃，macOS 26 及以上的菜单栏面板和撤销提示使用原生 Liquid Glass。当前应用界面为简体中文。
 
 如果已取得 GlassNotes 的 DMG，双击打开，将 **GlassNotes.app** 拖入「应用程序」。文件名会标出架构，Apple 芯片的 Mac 选择 `arm64`。升级前先退出正在运行的旧版，原有便签会自动沿用。
 

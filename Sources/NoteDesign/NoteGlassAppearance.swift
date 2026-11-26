@@ -40,14 +40,4 @@ public struct NoteGlassAppearance: Equatable, Sendable {
         guard let value, value.isFinite else { return fallback }
         return min(range.upperBound, max(range.lowerBound, value))
     }
-
-    /// Regular glass first takes a tint. Beyond the Standard preset the black backing fades in.
-    var regularTint: Double { min(dimming, Tokens.NoteGlass.standardDimming) }
-
-    var backing: Double {
-        if base == .clear { return dimming }
-        let start = Tokens.NoteGlass.standardDimming
-        let end = Tokens.NoteGlass.dimmingRange.upperBound
-        return end * (max(0, dimming - start) / (end - start))
-    }
 }

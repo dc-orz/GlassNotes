@@ -25,11 +25,17 @@ public struct GlassSurface: View {
                 }
             case .desktopNote(let look):
                 if #available(macOS 26.0, *) {
-                    let glass: Glass =
-                        look.base == .clear ? .clear : .regular.tint(.black.opacity(look.regularTint))
-                    Color.clear.glassEffect(glass, in: shape)
-                        .opacity(look.materialOpacity)
-                        .background(shape.fill(.black.opacity(look.backing)))
+                    ZStack {
+                        FrostedBackdrop()
+                            .opacity(
+                                look.base == .clear
+                                    ? Tokens.NoteGlass.clearFrostCoverage : Tokens.NoteGlass.regularFrostCoverage)
+                        if look.base == .clear { Tokens.NoteGlass.clearSheen }
+                    }
+                    .clipShape(shape)
+                    .overlay(shape.strokeBorder(Tokens.NoteGlass.rim, lineWidth: Tokens.NoteGlass.rimWidth))
+                    .opacity(look.materialOpacity)
+                    .overlay(shape.fill(.black.opacity(look.dimming)))
                 } else {
                     FrostedBackdrop().opacity(look.materialOpacity)
                         .overlay(Color.black.opacity(look.dimming)).clipShape(shape)

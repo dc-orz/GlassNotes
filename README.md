@@ -10,7 +10,7 @@ GlassNotes is a native macOS menu bar app for short notes that live on your desk
 
 ## Install
 
-GlassNotes runs on macOS 14 or later. On macOS 26 and later it uses native Liquid Glass. Earlier supported versions use an AppKit frosted backdrop. The app interface is currently in Simplified Chinese.
+GlassNotes runs on macOS 14 or later. Desktop notes use an AppKit frosted backdrop that keeps its appearance when keyboard focus moves. On macOS 26 and later, the menu bar panel and undo notification use native Liquid Glass. The app interface is currently in Simplified Chinese.
 
 If you have a GlassNotes DMG, open it and drag **GlassNotes.app** into **Applications**. The architecture is in the DMG filename. Choose `arm64` for Apple silicon. When upgrading, quit the running copy first. Your notes carry over automatically.
 
