@@ -22,7 +22,14 @@
 | `make check` | 检查格式、设计系统边界，并运行数据、布局和字体测试 |
 | `make smoke` | 在有桌面会话的 Mac 上短暂创建真实面板，验证拖动与按钮的命中范围、位置保存、编辑、完成和恢复 |
 | `make app` | 编译 Release，复制字体与图标，签名并校验，输出到 dist/ |
+| `make dmg` | 构建应用并生成带有「应用程序」快捷方式的只读安装镜像 |
 | `make fmt` | 用 Swift 工具链的格式化器整理 Swift 源码 |
+
+## 打包与分享
+
+在仓库根目录运行 `make dmg`。生成的 `dist/GlassNotes-<版本>-<架构>.dmg` 可直接发送给测试者。接收方双击镜像，将「墨笺」拖进 Applications，再从「应用程序」打开。文件名中的 `arm64` 表示适用于 Apple 芯片 Mac。
+
+默认构建使用本地临时签名。通过网络分享时，接收方的 Mac 可能提示无法验证开发者。准备通过 GitHub Releases 公开分发时，应使用 Developer ID Application 签名，启用 Hardened Runtime 和安全时间戳，再对分发镜像签名，提交 Apple 公证并装订公证票据。详见 [Apple 站外打包指南](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution)。
 
 ## 仓库导航
 
