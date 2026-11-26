@@ -50,7 +50,10 @@ public enum Tokens {
         static let clearGlassOpacity = 0.50
         static let clearFrostOpacity = 0.28
         static let cornerRadius: CGFloat = 22
-        static let frostResponseExponent = 5.0
+        // Base layers at full material strength. The slider scales the entire surface linearly.
+        static let clearFrostCoverage = 0.16
+        static let regularFrostCoverage = 0.42
+        static let clearSheen = Color.white.opacity(0.22)
         static let edgeWidth: CGFloat = 1.5
         static let edgeSoftness: CGFloat = 0.8
         static let edgeLight = LinearGradient(

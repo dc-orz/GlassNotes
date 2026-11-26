@@ -29,16 +29,31 @@ public struct GlassSurface: View {
                     FrostedBackdrop().clipShape(shape)
                 }
             case .desktopNote(let look):
-                FrostedBackdrop(material: .hudWindow)
-                    .opacity(look.frostOpacity)
-                    .overlay(Color.black.opacity(look.dimming))
+                desktopBackdrop(look)
+                    .clipShape(shape)
                     .overlay {
                         shape.strokeBorder(Tokens.NoteGlass.edgeLight, lineWidth: Tokens.NoteGlass.edgeWidth)
                             .blur(radius: Tokens.NoteGlass.edgeSoftness)
-                            .opacity(look.materialOpacity)
+                            .clipShape(shape)
                     }
-                    .clipShape(shape)
+                    .opacity(look.materialOpacity)
+                    .overlay(shape.fill(.black.opacity(look.dimming)))
             }
+        }
+    }
+
+    @ViewBuilder
+    private func desktopBackdrop(_ look: NoteGlassAppearance) -> some View {
+        if #available(macOS 26.0, *) {
+            ZStack {
+                FrostedBackdrop()
+                    .opacity(
+                        look.base == .clear
+                            ? Tokens.NoteGlass.clearFrostCoverage : Tokens.NoteGlass.regularFrostCoverage)
+                if look.base == .clear { Tokens.NoteGlass.clearSheen }
+            }
+        } else {
+            FrostedBackdrop()
         }
     }
 }
@@ -57,17 +72,13 @@ extension View {
 }
 
 private struct FrostedBackdrop: NSViewRepresentable {
-    var material: NSVisualEffectView.Material = .popover
-
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
         view.blendingMode = .behindWindow
-        view.material = material
+        view.material = .popover
         view.state = .active
         return view
     }
 
-    func updateNSView(_ view: NSVisualEffectView, context: Context) {
-        if view.material != material { view.material = material }
-    }
+    func updateNSView(_ view: NSVisualEffectView, context: Context) {}
 }

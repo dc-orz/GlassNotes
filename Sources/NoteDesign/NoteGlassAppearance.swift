@@ -36,14 +36,6 @@ public struct NoteGlassAppearance: Equatable, Sendable {
         self.dimming = Self.bounded(dimming, in: Tokens.NoteGlass.dimmingRange, fallback: defaultDimming)
     }
 
-    /// Give midrange settings enough optical blur to soften wallpaper while retaining both slider endpoints.
-    var frostOpacity: Double {
-        let range = Tokens.NoteGlass.materialRange
-        let span = range.upperBound - range.lowerBound
-        let remaining = (range.upperBound - materialOpacity) / span
-        return range.upperBound - span * pow(remaining, Tokens.NoteGlass.frostResponseExponent)
-    }
-
     private static func bounded(_ value: Double?, in range: ClosedRange<Double>, fallback: Double) -> Double {
         guard let value, value.isFinite else { return fallback }
         return min(range.upperBound, max(range.lowerBound, value))
