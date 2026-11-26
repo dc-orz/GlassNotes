@@ -34,7 +34,7 @@ struct NoteCard: View {
     @FocusState private var editingFocus: Bool
     @ViewState private var hovering = false
     @StateObject private var dismissal = InkDismissal()
-    private var glass = DesktopGlassPreference()
+    var glass = DesktopGlassPreference()
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {

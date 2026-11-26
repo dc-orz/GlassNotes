@@ -239,7 +239,7 @@ struct NativeDesktopTests {
 }
 
 private struct GlassPreferenceProbe: View {
-    private var glass = DesktopGlassPreference()
+    var glass = DesktopGlassPreference()
     let observe: (DesktopGlassPreference) -> Void
 
     var body: some View {

@@ -4,7 +4,7 @@ import SwiftUI
 struct GlassAdjustmentPane: View {
     let done: () -> Void
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-    private var glass = DesktopGlassPreference()
+    var glass = DesktopGlassPreference()
 
     var body: some View {
         VStack(alignment: .leading, spacing: Tokens.Space.standard) {
