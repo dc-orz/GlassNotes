@@ -2,6 +2,10 @@
 
 # GlassNotes
 
+[![CI](https://github.com/dc-orz/GlassNotes/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/dc-orz/GlassNotes/actions/workflows/ci.yml)
+[![macOS 14+](https://img.shields.io/badge/macOS-14%2B-555555)](#install)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 [简体中文](README.zh-CN.md)
 
 GlassNotes is a native macOS menu bar app for short notes that live on your desktop. Each note is a separate pane of frosted glass. Arrange a few where you want them, glance at them between windows, and wipe them away when you're done.
@@ -10,7 +14,7 @@ GlassNotes is a native macOS menu bar app for short notes that live on your desk
 
 ## Install
 
-GlassNotes runs on macOS 14 or later. Desktop notes default to an AppKit frosted backdrop that keeps its appearance when keyboard focus moves. On macOS 26 or later, you can switch desktop notes to Liquid Glass to see its refraction and focus transitions. On macOS 26 and later, the menu bar panel and undo notification use native Liquid Glass. The app interface is currently in Simplified Chinese.
+GlassNotes runs on macOS 14 or later. The app interface is currently in Simplified Chinese.
 
 If you have a GlassNotes DMG, open it and drag **GlassNotes.app** into **Applications**. The architecture is in the DMG filename. Choose `arm64` for Apple silicon. When upgrading, quit the running copy first. Your notes carry over automatically.
 
@@ -24,9 +28,21 @@ If you have a GlassNotes DMG, open it and drag **GlassNotes.app** into **Applica
 | Complete and restore | Click the circled checkmark. The text wipes away and the glass fades. Undo within five seconds, or restore it later from **已完成** in the menu bar panel. |
 | Permanently delete | In **已完成**, click the trash icon next to a note, then confirm **永久删除**. |
 | Check the version | Open **…** in the menu bar panel. The installed app shows its version just above **退出 GlassNotes**. |
-| Adjust the glass | Open **… → 玻璃透明度**. On macOS 26 or later, turn on **使用原生 Liquid Glass** to switch all notes immediately. Turn it off to return to your saved frosted settings. For frosted glass, choose a starting preset. Drag **材质强度** (material strength, 20–100%) and **背景压暗** (background dimming, 0–62%) to update every note live. Use **恢复** to restore the selected preset. Reduce Transparency and Reduce Motion follow macOS accessibility settings. |
 
 To set a global capture shortcut, open **… → 快速记录快捷键 → 录制快捷键** and press the combination. Use Command, Option, or Control with a key, or use a function key on its own. Press Esc to cancel. The **预设** menu restores a preset or turns the shortcut off.
+
+## Choose a glass style
+
+Open **… → 玻璃透明度** (Glass appearance) in the menu bar panel. On macOS 26 or later, **使用原生 Liquid Glass** switches every desktop note immediately.
+
+| Setting | What you’ll see |
+| --- | --- |
+| Off · Frosted glass (default, macOS 14+) | An AppKit backdrop softly blurs the wallpaper and stays steady when you switch windows. Choose a preset, then adjust **材质强度** (material strength, 20–100%) and **背景压暗** (background dimming, 0–62%). **恢复** restores the preset values. |
+| On · Native Liquid Glass (macOS 26+) | Apple’s material bends wallpaper details around the edges of the focused note. When another window takes focus, the system softens the effect. A note left on the desktop can look more muted most of the time. |
+
+To compare on your own wallpaper, click a note’s pencil, then click another window. Switch Liquid Glass off to return to your saved frosted settings. Both styles use a solid background when Reduce Transparency is enabled. Note animations follow Reduce Motion.
+
+![The same note and wallpaper with frosted glass, focused Liquid Glass, and unfocused Liquid Glass, from left to right](docs/glass-modes.jpg)
 
 ## Local storage
 
@@ -49,6 +65,8 @@ open dist/GlassNotes.app
 | `make dmg` | Build the app and create a drag-to-install disk image in `dist/` for the build machine's architecture. |
 
 Local builds use an ad hoc signature. For public binary distribution, sign with Developer ID and notarize the disk image. [Apple's distribution guide](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution)
+
+GitHub Actions runs `make check` and `make dmg` on macOS for pushes and pull requests to `main`. Use `make smoke` locally to test window focus and keyboard interaction in a logged-in desktop session.
 
 ## Contributing
 

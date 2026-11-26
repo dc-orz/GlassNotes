@@ -2,6 +2,10 @@
 
 # GlassNotes
 
+[![CI](https://github.com/dc-orz/GlassNotes/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/dc-orz/GlassNotes/actions/workflows/ci.yml)
+[![macOS 14+](https://img.shields.io/badge/macOS-14%2B-555555)](#安装)
+[![MIT 许可证](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 [English](README.md)
 
 GlassNotes 是一款原生 macOS 菜单栏便签。每张便签都是一块独立的毛玻璃。把几张便签散放在桌面，切回桌面时一眼就能看到，做完一件就擦掉一张。
@@ -10,7 +14,7 @@ GlassNotes 是一款原生 macOS 菜单栏便签。每张便签都是一块独�
 
 ## 安装
 
-支持 macOS 14 及以上。桌面便签默认使用焦点切换时亮度稳定的 AppKit 毛玻璃，macOS 26 及以上还可为便签开启原生 Liquid Glass。macOS 26 及以上的菜单栏面板和撤销提示使用原生 Liquid Glass。当前应用界面为简体中文。
+支持 macOS 14 及以上。当前应用界面为简体中文。
 
 如果已取得 GlassNotes 的 DMG，双击打开，将 **GlassNotes.app** 拖入「应用程序」。文件名会标出架构，Apple 芯片的 Mac 选择 `arm64`。升级前先退出正在运行的旧版，原有便签会自动沿用。
 
@@ -24,9 +28,21 @@ GlassNotes 是一款原生 macOS 菜单栏便签。每张便签都是一块独�
 | 完成与恢复 | 点圆圈勾，文字会擦去，玻璃随之淡出。五秒内可点「撤销」，之后仍可在菜单栏的「已完成」列表恢复。 |
 | 永久删除 | 在「已完成」里点击便签旁的垃圾桶，核对内容后点「永久删除」。 |
 | 查看版本 | 在菜单栏面板中打开 **…**，「退出 GlassNotes」上方会显示当前运行的版本号。 |
-| 调整透明度 | 打开 **… → 玻璃透明度**。macOS 26 及以上可开启 **使用原生 Liquid Glass**，所有桌面便签即时切换，关闭即恢复上次的毛玻璃设置。使用毛玻璃时，从「通透」「标准」「低透」中选一个预设，再连续调节材质强度（20–100%）和背景压暗（0–62%）。所有便签实时更新，点「恢复」可回到所选预设。「减少透明度」和「减少动态效果」跟随 macOS 辅助功能设置。 |
 
 打开「… → 快速记录快捷键 → 录制快捷键」，按下想用的组合键。可使用 ⌘、⌥ 或 ⌃ 搭配其他键，也可单独使用功能键。按 Esc 取消，在「预设」里可恢复预设或关闭快捷键。
+
+## 选择玻璃效果
+
+在菜单栏面板中打开 **… → 玻璃透明度**。macOS 26 及以上提供 **使用原生 Liquid Glass** 开关，切换后立即应用到所有桌面便签。
+
+| 开关 | 桌面上的效果 |
+| --- | --- |
+| 关闭 · 毛玻璃（默认，macOS 14+） | AppKit 毛玻璃让壁纸轻微模糊，切换窗口时便签的明暗保持稳定。选好预设后，可调节「材质强度」（20–100%）和「背景压暗」（0–62%），点「恢复」可回到预设值。 |
+| 开启 · 原生 Liquid Glass（macOS 26+） | 便签获得焦点时，边缘能看到壁纸纹理被折射、拉弯。点到其他窗口后，系统会弱化效果。便签如果常驻桌面，大部分时间看到的可能是较柔和的失焦外观。 |
+
+想用自己的壁纸对比，可以点一张便签的铅笔，再点其他窗口。关掉原生效果就会恢复之前的毛玻璃设置。系统开启「减少透明度」时，两种模式都使用实色背景。便签动画跟随「减少动态效果」设置。
+
+![同一张便签和壁纸，从左到右分别是毛玻璃、原生玻璃聚焦、原生玻璃失焦](docs/glass-modes.jpg)
 
 ## 本地存储
 
@@ -49,6 +65,8 @@ open dist/GlassNotes.app
 | `make dmg` | 按构建机器架构打包应用，在 `dist/` 生成可拖入安装的镜像。 |
 
 本地构建使用临时签名。公开分发二进制版本时，应使用 Developer ID 签名并对镜像进行公证。[Apple 分发指南](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution)
+
+推送到 `main` 或向该分支提交拉取请求时，GitHub Actions 会在 macOS 上运行 `make check` 和 `make dmg`。窗口焦点和键盘交互可在已登录的 Mac 桌面上用 `make smoke` 验证。
 
 ## 参与开发
 
