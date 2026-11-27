@@ -5,6 +5,37 @@ import Testing
 
 @testable import GlassNotes
 
+@MainActor
+struct UpdateSessionTests {
+    @Test(arguments: [false, true])
+    func lateCheckCannotReplaceNewerResult(fails: Bool) async throws {
+        let firstStarted = AsyncStream<Void>.makeStream()
+        let firstMayFinish = AsyncStream<Void>.makeStream()
+        var calls = 0
+        let updates = UpdateSession(checkForUpdate: {
+            calls += 1
+            let first = calls == 1
+            if first {
+                firstStarted.continuation.finish()
+                for await _ in firstMayFinish.stream {}
+                if fails { throw ReleaseCheck.Failure.http(503) }
+            }
+            return ReleaseCheck.Result(
+                latest: first ? "1" : "2", url: URL(fileURLWithPath: "/"), status: .upToDate, package: nil)
+        })
+        let old = Task { await updates.check() }
+        for await _ in firstStarted.stream {}
+        await updates.check()
+        firstMayFinish.continuation.finish()
+        await old.value
+        guard case .checked(let result) = updates.phase else {
+            Issue.record("The older check overwrote the latest result")
+            return
+        }
+        #expect(result.latest == "2")
+    }
+}
+
 extension NativeDesktopTests {
     @Test(
         .enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"),

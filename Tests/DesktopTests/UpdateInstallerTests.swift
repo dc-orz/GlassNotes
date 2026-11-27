@@ -29,8 +29,12 @@ struct UpdateInstallerTests {
         let update = try metadata(version: "2")
         try original.write(to: app.appendingPathComponent(plist))
         try files.copyItem(at: app, to: installed)
+        try run("/usr/bin/codesign", ["--force", "--sign", "-", installed.path])
         try update.write(to: app.appendingPathComponent(plist))
         try run("/usr/bin/codesign", ["--force", "--sign", "-", app.path])
+        #expect(throws: UpdateInstaller.Failure.signature) {
+            try UpdateSignature.verify(app, replacing: URL(fileURLWithPath: "/usr/bin/true"))
+        }
         func makeImage(_ name: String) throws -> ReleasePackage {
             let image = folder.appendingPathComponent(name).appendingPathExtension("dmg")
             try run(
@@ -51,6 +55,11 @@ struct UpdateInstallerTests {
         #expect(throws: UpdateInstaller.Failure.wrongDigest) { try install(corrupt) }
         let mislabeled = ReleasePackage(version: "3", url: valid.url, sha256: valid.sha256)
         #expect(throws: UpdateInstaller.Failure.invalidApplication) { try install(mislabeled) }
+        let executable = macOS.appendingPathComponent("GlassNotes")
+        try files.setAttributes([.posixPermissions: 0o644], ofItemAtPath: executable.path)
+        let unlaunchable = try makeImage("No execute permission")
+        #expect(throws: UpdateInstaller.Failure.invalidApplication) { try install(unlaunchable) }
+        try files.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
         try Data("modified".utf8).write(to: app.appendingPathComponent("Contents/unsealed.txt"))
         let unsignedChange = try makeImage("Modified update")
         #expect(throws: UpdateInstaller.Failure.signature) { try install(unsignedChange) }

@@ -13,6 +13,7 @@ final class UpdateSession: ObservableObject {
     }
 
     @Published private(set) var phase = Phase.checking
+    private var latestCheck = UUID()
     private let checkForUpdate: @MainActor () async throws -> ReleaseCheck.Result
     private let installPackage: @MainActor (ReleasePackage) async throws -> Void
 
@@ -34,12 +35,15 @@ final class UpdateSession: ObservableObject {
         case .installFailed where !refreshAfterFailure: return
         case .checking, .checked, .checkFailed, .installFailed: break
         }
+        let requestID = UUID()
+        latestCheck = requestID
         phase = .checking
         do {
             let result = try await checkForUpdate()
-            if !Task.isCancelled { phase = .checked(result) }
+            guard !Task.isCancelled, latestCheck == requestID else { return }
+            phase = .checked(result)
         } catch {
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, latestCheck == requestID else { return }
             if case ReleaseCheck.Failure.rateLimited(let date) = error {
                 phase = .checkFailed(error.localizedDescription, retryAt: date)
             } else {

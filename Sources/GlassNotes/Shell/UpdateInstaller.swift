@@ -12,11 +12,11 @@ enum UpdateInstaller {
             case .unavailableLocation: "当前位置无法安装更新。请将 GlassNotes 移到可写的「应用程序」文件夹，重新打开后重试。"
             case .changedApplication: "磁盘上的 GlassNotes 已更改，请重新打开后检查更新。"
             case .wrongDigest: "下载文件的 SHA-256 校验失败，请重新下载。"
-            case .invalidApplication: "安装包中的应用与此版本或 Mac 架构不符。"
+            case .invalidApplication: "安装包中的应用无法在这台 Mac 上运行，或与发布版本不符。"
             case .incompatibleSystem: "此版本需要更新的 macOS。"
             case .mount: "无法打开下载的磁盘镜像。"
             case .detach: "无法推出更新磁盘镜像，请重试。"
-            case .signature: "安装包中的 GlassNotes 未通过代码签名校验。"
+            case .signature: "GlassNotes 未通过代码签名或签名身份校验。"
             }
         }
     }
@@ -55,6 +55,7 @@ enum UpdateInstaller {
         let info = try metadata(at: destination)
         guard info.identifier == "app.glassnotes.mac", info.version == runningVersion
         else { throw Failure.changedApplication }
+        try UpdateSignature.verify(candidate, replacing: destination)
         guard renamex_np(candidate.path, destination.path, UInt32(RENAME_SWAP)) == 0 else {
             let code = errno
             if [EACCES, EPERM, EROFS].contains(code) { throw Failure.unavailableLocation }
@@ -82,6 +83,7 @@ enum UpdateInstaller {
     private static func validate(_ app: URL, version: String) throws {
         guard let info = try? metadata(at: app), info.identifier == "app.glassnotes.mac",
             info.version == version, let bundle = Bundle(url: app),
+            let executable = bundle.executableURL, FileManager.default.isExecutableFile(atPath: executable.path),
             bundle.executableArchitectures?.contains(
                 NSNumber(value: MacArchitecture.current.executableArchitecture)) == true
         else { throw Failure.invalidApplication }
@@ -92,7 +94,6 @@ enum UpdateInstaller {
                 throw Failure.incompatibleSystem
             }
         }
-        try run("/usr/bin/codesign", ["--verify", "--strict", "--deep", app.path], failure: .signature)
     }
 
     private static func copyApplication(from image: URL, to candidate: URL) throws {
