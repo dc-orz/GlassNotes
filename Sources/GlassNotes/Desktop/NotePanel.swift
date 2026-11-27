@@ -23,6 +23,11 @@ final class NotePanel: KeyablePanel {
 
     override func sendEvent(_ event: NSEvent) {
         if event.type == .leftMouseDown, isMoveArea(at: event.locationInWindow) {
+            if !event.modifierFlags.contains(.command), DesktopGlassPreference().usesNativeGlass,
+                !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
+            {
+                makeKeyAndOrderFront(nil)
+            }
             performDrag(with: event)
         } else {
             super.sendEvent(event)

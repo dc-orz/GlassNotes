@@ -40,7 +40,7 @@ Open **… → 玻璃透明度** (Glass appearance) in the menu bar panel. On ma
 | Off · Frosted glass (default, macOS 14+) | An AppKit backdrop softly blurs the wallpaper and stays steady when you switch windows. Choose a preset, then adjust **材质强度** (material strength, 20–100%) and **背景压暗** (background dimming, 0–62%). **恢复** restores the preset values. |
 | On · Native Liquid Glass (macOS 26+) | Apple’s material bends wallpaper details around the edges of the focused note. When another window takes focus, the system softens the effect. A note left on the desktop can look more muted most of the time. |
 
-To compare on your own wallpaper, click a note’s pencil, then click another window. Switch Liquid Glass off to return to your saved frosted settings. Both styles use a solid background when Reduce Transparency is enabled. Note animations follow Reduce Motion.
+To compare on your own wallpaper, drag a note or click its pencil. The glass stays focused after you release the note or finish editing, until another window takes focus. Hold **⌘** while dragging to keep focus in the current window. Switch Liquid Glass off to return to your saved frosted settings. Both styles use a solid background when Reduce Transparency is enabled. Note animations follow Reduce Motion.
 
 ![The same note and wallpaper with frosted glass, focused Liquid Glass, and unfocused Liquid Glass, from left to right](docs/glass-modes.jpg)
 

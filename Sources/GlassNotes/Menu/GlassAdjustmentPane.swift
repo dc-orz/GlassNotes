@@ -28,7 +28,7 @@ struct GlassAdjustmentPane: View {
 
     private var hint: String {
         if reduceTransparency { return "系统已开启「减少透明度」，便签使用实色背景。" }
-        if glass.usesNativeGlass { return "点铅笔编辑便签，再点其他窗口，比较玻璃的折射变化。" }
+        if glass.usesNativeGlass { return "拖动或编辑便签时，玻璃边缘的折射更明显。点到其他窗口后，效果会减弱。" }
         return "调整会实时应用到所有桌面便签。"
     }
 
