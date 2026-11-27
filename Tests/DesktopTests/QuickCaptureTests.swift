@@ -24,7 +24,7 @@ extension NativeDesktopTests {
         defer { panel.close() }
         let capture = QuickCapture(
             state: state, panel: panel, desktop: DesktopWindows(state: state), close: {}, showEditor: { _ in },
-            recordShortcut: {}, shortcut: CaptureShortcut {})
+            recordShortcut: {}, shortcut: CaptureShortcut {}, updates: UpdateSession())
         let host = NSHostingView(rootView: capture.background(Color(nsColor: .windowBackgroundColor)))
         panel.setContentSize(host.fittingSize)
         panel.contentView = host

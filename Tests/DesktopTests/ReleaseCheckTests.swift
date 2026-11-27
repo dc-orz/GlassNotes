@@ -47,6 +47,34 @@ struct ReleaseCheckTests {
         }
     }
 
+    @Test func offersOnlyVerifiedPackagesForANewerCompatibleRelease() throws {
+        let hash = String(repeating: "1a", count: 32)
+        let data = Data(
+            """
+            {"tag_name":"v0.2","assets":[
+              {"name":"GlassNotes-0.2-x86_64.dmg","digest":"sha256:bad"},
+              {"name":"GlassNotes-0.2-arm64.dmg.sha256"},
+              {"name":"GlassNotes-0.1-x86_64.dmg","digest":"sha256:\(hash)"},
+              {"name":"GlassNotes-0.2-arm64.dmg","digest":"sha256:\(hash)"}
+            ]}
+            """.utf8)
+        let response = try #require(
+            HTTPURLResponse(url: URL(fileURLWithPath: "/"), statusCode: 200, httpVersion: nil, headerFields: nil))
+        func check(_ installed: String?, _ architecture: MacArchitecture) throws -> ReleasePackage? {
+            try ReleaseCheck.result(
+                data: data, response: response, installed: installed, architecture: architecture
+            ).package
+        }
+        let package = try #require(try check("0.1", .arm64))
+        #expect(
+            package.url.absoluteString
+                == "https://github.com/dc-orz/GlassNotes/releases/download/v0.2/GlassNotes-0.2-arm64.dmg")
+        #expect(package.sha256 == hash)
+        #expect(try check("0.1", .intel) == nil)
+        #expect(try check("0.2", .arm64) == nil)
+        #expect(try check(nil, .arm64) == nil)
+    }
+
     @Test func reopeningDuringRateLimitSkipsTheNetwork() async throws {
         let check = ReleaseCheck()
         let reset = Int(Date.now.timeIntervalSince1970) + 120

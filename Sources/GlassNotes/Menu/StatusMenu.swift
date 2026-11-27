@@ -11,6 +11,7 @@ final class StatusMenu: NSObject, NSWindowDelegate {
     private let state: AppState
     private let desktop: DesktopWindows
     private let shortcut: CaptureShortcut
+    private let updates = UpdateSession()
 
     init(state: AppState, desktop: DesktopWindows, shortcut: CaptureShortcut) {
         self.state = state
@@ -57,7 +58,7 @@ final class StatusMenu: NSObject, NSWindowDelegate {
             recordShortcut: { [weak self] in
                 guard let self else { return }
                 self.shortcut.beginRecording(in: self.panel)
-            }, shortcut: shortcut
+            }, shortcut: shortcut, updates: updates
         )
         .background(GlassSurface())
         .onExitCommand { [weak self] in self?.close() }

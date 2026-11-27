@@ -2,6 +2,10 @@
 
 修改前先读 README 和 docs/architecture.md。交付前运行 `make check`。打包用 `make app`，生成物放在 dist/。
 
+## 提交约定
+
+有对应的 GitHub issue 时，建议在 commit 标题或正文中引用编号，方便从提交追溯需求。例如，处理 #7 的提交可在正文写 `Refs #7`。
+
 ## 模块边界
 
 - NoteCore 只依赖 Foundation、CoreGraphics 几何类型及文件锁所需的 Darwin，负责便签、坐标、状态转换和存储格式。窗口与正文颜色属于上层。

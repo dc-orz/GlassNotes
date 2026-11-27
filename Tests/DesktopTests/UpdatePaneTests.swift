@@ -5,6 +5,37 @@ import Testing
 
 @testable import GlassNotes
 
+@MainActor
+struct UpdateSessionTests {
+    @Test(arguments: [false, true])
+    func lateCheckCannotReplaceNewerResult(fails: Bool) async throws {
+        let firstStarted = AsyncStream<Void>.makeStream()
+        let firstMayFinish = AsyncStream<Void>.makeStream()
+        var calls = 0
+        let updates = UpdateSession(checkForUpdate: {
+            calls += 1
+            let first = calls == 1
+            if first {
+                firstStarted.continuation.finish()
+                for await _ in firstMayFinish.stream {}
+                if fails { throw ReleaseCheck.Failure.http(503) }
+            }
+            return ReleaseCheck.Result(
+                latest: first ? "1" : "2", url: URL(fileURLWithPath: "/"), status: .upToDate, package: nil)
+        })
+        let old = Task { await updates.check() }
+        for await _ in firstStarted.stream {}
+        await updates.check()
+        firstMayFinish.continuation.finish()
+        await old.value
+        guard case .checked(let result) = updates.phase else {
+            Issue.record("The older check overwrote the latest result")
+            return
+        }
+        #expect(result.latest == "2")
+    }
+}
+
 extension NativeDesktopTests {
     @Test(
         .enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"),
@@ -23,10 +54,10 @@ extension NativeDesktopTests {
         defer { panel.close() }
 
         var requests = 0
+        var installs = 0
+        var finishInstall: CheckedContinuation<Void, Never>?
         var retryAt = Date.distantPast
-        let capture = QuickCapture(
-            state: state, panel: panel, desktop: DesktopWindows(state: state), close: {}, showEditor: { _ in },
-            recordShortcut: {}, shortcut: CaptureShortcut {},
+        let updates = UpdateSession(
             checkForUpdate: {
                 requests += 1
                 if requests == 1 {
@@ -38,8 +69,16 @@ extension NativeDesktopTests {
                 }
                 return ReleaseCheck.Result(
                     latest: "0.2.0", url: URL(string: "https://github.com/dc-orz/GlassNotes/releases/tag/v0.2.0")!,
-                    status: .available)
-            }, detail: .update)
+                    status: .available, package: ReleasePackage(version: "0.2.0", url: folder, sha256: ""))
+            },
+            installPackage: { _ in
+                installs += 1
+                if installs == 1 { throw UpdateInstaller.Failure.wrongDigest }
+                await withCheckedContinuation { finishInstall = $0 }
+            })
+        let capture = QuickCapture(
+            state: state, panel: panel, desktop: DesktopWindows(state: state), close: {}, showEditor: { _ in },
+            recordShortcut: {}, shortcut: CaptureShortcut {}, updates: updates, detail: .update)
         panel.contentView = NSHostingView(rootView: capture)
         panel.makeKeyAndOrderFront(nil)
         let enter = try #require(
@@ -61,11 +100,19 @@ extension NativeDesktopTests {
             try await Task.sleep(for: .milliseconds(50))
             try #require(requests == 1)
         }
-        // Return activates Retry after the failure, then Done after the successful response.
+        // Return retries the check, installs, retries the failed install, then returns to the draft.
         try #require(
             try await waitForUI { requests == 1 && Date.now >= retryAt && panel.performKeyEquivalent(with: enter) }
         )
         try #require(try await waitForUI { requests == 2 && panel.performKeyEquivalent(with: enter) })
+        try #require(try await waitForUI { installs == 1 && panel.performKeyEquivalent(with: enter) })
+        try #require(try await waitForUI { finishInstall != nil })
+        // The status menu creates a fresh host when reopened while the download is in flight.
+        panel.contentView = NSHostingView(rootView: capture)
+        await updates.check()
+        updates.install()
+        finishInstall?.resume()
+        try #require(try await waitForUI { installs == 2 && panel.performKeyEquivalent(with: enter) })
         try #require(try await waitForUI { panel.firstResponder is NSTextView })
         let editor = try #require(panel.firstResponder as? NSTextView)
         editor.insertText("重试后继续记录", replacementRange: NSRange(location: 0, length: 0))

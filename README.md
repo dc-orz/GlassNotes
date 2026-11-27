@@ -27,7 +27,7 @@ If you have a GlassNotes DMG, open it and drag **GlassNotes.app** into **Applica
 | Edit | Hover over the note and click the pencil in the lower-right corner. Press **⌘↩** to save or **Esc** to cancel. |
 | Complete and restore | Click the circled checkmark. The text wipes away and the glass fades. Undo within five seconds, or restore it later from **已完成** in the menu bar panel. |
 | Permanently delete | In **已完成**, click the trash icon next to a note, then confirm **永久删除**. |
-| Check for updates | Choose **… → 检查更新** to compare your installed version with the latest GitHub release. When an update is available, open its release notes and download the installer. |
+| Check for updates | Choose **… → 检查更新**, then **下载并安装** to download and install the update for your Mac. Once installation finishes, quit and reopen GlassNotes. |
 
 To set a global capture shortcut, open **… → 快速记录快捷键 → 录制快捷键** and press the combination. Use Command, Option, or Control with a key, or use a function key on its own. Press Esc to cancel. The **预设** menu restores a preset or turns the shortcut off.
 
