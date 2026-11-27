@@ -10,7 +10,9 @@ struct QuickCapture: View {
     let showEditor: (UUID) -> Void
     let recordShortcut: () -> Void
     @ObservedObject var shortcut: CaptureShortcut
-    var checkForUpdate: @MainActor () async throws -> ReleaseCheck.Result = ReleaseCheck.latest
+    var checkForUpdate: @MainActor () async throws -> ReleaseCheck.Result = {
+        try await ReleaseCheck.shared.latest()
+    }
     @ViewState private var archived = false
     @FocusState private var focused: Bool
     enum Detail: Equatable {

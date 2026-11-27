@@ -1,6 +1,8 @@
 import Foundation
 
-enum ReleaseCheck {
+actor ReleaseCheck {
+    static let shared = ReleaseCheck()
+    private var retryAt = Date.distantPast
     static let installedVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
     private static let endpoint = URL(string: "https://api.github.com/repos/dc-orz/GlassNotes/releases/latest")!
 
@@ -23,36 +25,48 @@ enum ReleaseCheck {
     }
 
     enum Failure: LocalizedError, Equatable {
-        case noRelease, rateLimited, invalidResponse
+        case noRelease, invalidResponse
+        case rateLimited(until: Date)
         case http(Int)
 
         var errorDescription: String? {
             switch self {
             case .noRelease: "GitHub 上还没有正式发布的版本。"
-            case .rateLimited: "GitHub 请求次数已达上限，请稍后重试。"
+            case .rateLimited(let date):
+                "GitHub 请求次数已达上限，可在 \(date.formatted(date: .omitted, time: .standard)) 后重试。"
             case .http(let status): "GitHub 返回 HTTP \(status)。"
             case .invalidResponse: "无法识别 GitHub 返回的版本信息。"
             }
         }
     }
 
-    static func latest() async throws -> Result {
-        var request = URLRequest(url: endpoint, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+    func latest(
+        fetch: @Sendable (URLRequest) async throws -> (Data, URLResponse) = {
+            try await URLSession.shared.data(for: $0)
+        }
+    ) async throws -> Result {
+        guard Date.now >= retryAt else { throw Failure.rateLimited(until: retryAt) }
+        var request = URLRequest(
+            url: Self.endpoint, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await fetch(request)
         guard let response = response as? HTTPURLResponse else { throw Failure.invalidResponse }
-        return try result(data: data, response: response, installed: installedVersion)
+        do {
+            return try Self.result(data: data, response: response, installed: Self.installedVersion)
+        } catch Failure.rateLimited(let date) {
+            retryAt = max(retryAt, date)
+            throw Failure.rateLimited(until: retryAt)
+        }
     }
 
-    static func result(data: Data, response: HTTPURLResponse, installed: String?) throws -> Result {
+    static func result(data: Data, response: HTTPURLResponse, installed: String?, now: Date = .now) throws
+        -> Result
+    {
         switch response.statusCode {
         case 200: break
         case 404: throw Failure.noRelease
-        case 429: throw Failure.rateLimited
-        case 403
-        where response.value(forHTTPHeaderField: "X-RateLimit-Remaining") == "0"
-            || response.value(forHTTPHeaderField: "Retry-After") != nil:
-            throw Failure.rateLimited
+        case 403, 429:
+            throw limitError(data: data, response: response, now: now)
         default: throw Failure.http(response.statusCode)
         }
         guard let release = try? JSONDecoder().decode(Release.self, from: data) else {
@@ -69,6 +83,24 @@ enum ReleaseCheck {
         let url = URL(string: "https://github.com/dc-orz/GlassNotes/releases/tag/")!.appendingPathComponent(
             release.tag)
         return Result(latest: latest, url: url, status: status)
+    }
+
+    private static func limitError(data: Data, response: HTTPURLResponse, now: Date) -> Failure {
+        struct GitHubError: Decodable { let message: String }
+        let exhausted = response.value(forHTTPHeaderField: "X-RateLimit-Remaining") == "0"
+        let delay = response.value(forHTTPHeaderField: "Retry-After").flatMap(Int.init)
+        let message = try? JSONDecoder().decode(GitHubError.self, from: data).message
+        guard
+            response.statusCode == 429 || exhausted || delay != nil
+                || message?.localizedCaseInsensitiveContains("rate limit") == true
+        else { return .http(response.statusCode) }
+
+        var deadlines: [Date] = []
+        if let delay, delay >= 0 { deadlines.append(now.addingTimeInterval(TimeInterval(delay))) }
+        if exhausted, let reset = response.value(forHTTPHeaderField: "X-RateLimit-Reset").flatMap(Int.init) {
+            deadlines.append(Date(timeIntervalSince1970: TimeInterval(reset)))
+        }
+        return .rateLimited(until: deadlines.max() ?? now.addingTimeInterval(60))
     }
 
     // Bundle versions and published tags use dotted decimal components. 1.2 and 1.2.0 compare equally.

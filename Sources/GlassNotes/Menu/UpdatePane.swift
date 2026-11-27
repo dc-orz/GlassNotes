@@ -7,7 +7,7 @@ struct UpdatePane: View {
     private enum Phase {
         case checking
         case finished(ReleaseCheck.Result)
-        case failed(String)
+        case failed(String, retryAt: Date?)
     }
     @ViewState private var phase = Phase.checking
     @ViewState private var attempt = 0
@@ -38,7 +38,7 @@ struct UpdatePane: View {
                 if result.status != .upToDate {
                     Link("查看更新说明和下载", destination: result.url)
                 }
-            case .failed(let reason):
+            case .failed(let reason, let retryAt):
                 Text("检查更新失败").font(Tokens.TypeStyle.heading)
                 Text(verbatim: reason)
                 Button("重试") {
@@ -46,6 +46,12 @@ struct UpdatePane: View {
                     attempt += 1
                 }
                 .keyboardShortcut(.defaultAction)
+                .disabled(retryAt != nil)
+                .task(id: retryAt) {
+                    guard let retryAt else { return }
+                    try? await Task.sleep(for: .seconds(max(0, retryAt.timeIntervalSinceNow)))
+                    if !Task.isCancelled { phase = .failed(reason, retryAt: nil) }
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -54,8 +60,14 @@ struct UpdatePane: View {
                 let result = try await checkForUpdate()
                 if !Task.isCancelled { phase = .finished(result) }
             } catch {
-                if !Task.isCancelled { phase = .failed(error.localizedDescription) }
+                guard !Task.isCancelled else { return }
+                if let failure = error as? ReleaseCheck.Failure, case .rateLimited(let date) = failure {
+                    phase = .failed(failure.localizedDescription, retryAt: date)
+                } else {
+                    phase = .failed(error.localizedDescription, retryAt: nil)
+                }
             }
         }
     }
+
 }

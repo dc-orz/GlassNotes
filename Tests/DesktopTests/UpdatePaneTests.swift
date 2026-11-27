@@ -6,8 +6,10 @@ import Testing
 @testable import GlassNotes
 
 extension NativeDesktopTests {
-    @Test(.enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"))
-    func keyboardRetriesUpdateAndReturnsToCapture() async throws {
+    @Test(
+        .enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"),
+        arguments: [false, true])
+    func keyboardRetriesUpdateAndReturnsToCapture(rateLimited: Bool) async throws {
         let app = NSApplication.shared
         app.setActivationPolicy(.accessory)
         app.finishLaunching()
@@ -21,12 +23,19 @@ extension NativeDesktopTests {
         defer { panel.close() }
 
         var requests = 0
+        var retryAt = Date.distantPast
         let capture = QuickCapture(
             state: state, desktop: DesktopWindows(state: state), close: {}, showEditor: { _ in },
             recordShortcut: {}, shortcut: CaptureShortcut {},
             checkForUpdate: {
                 requests += 1
-                if requests == 1 { throw ReleaseCheck.Failure.http(503) }
+                if requests == 1 {
+                    if rateLimited {
+                        retryAt = Date.now.addingTimeInterval(1)
+                        throw ReleaseCheck.Failure.rateLimited(until: retryAt)
+                    }
+                    throw ReleaseCheck.Failure.http(503)
+                }
                 return ReleaseCheck.Result(
                     latest: "0.2.0", url: URL(string: "https://github.com/dc-orz/GlassNotes/releases/tag/v0.2.0")!,
                     status: .available)
@@ -46,8 +55,16 @@ extension NativeDesktopTests {
             }
             return true
         }
+        if rateLimited {
+            try #require(try await waitForUI { requests == 1 })
+            _ = panel.performKeyEquivalent(with: enter)
+            try await Task.sleep(for: .milliseconds(50))
+            try #require(requests == 1)
+        }
         // Return activates Retry after the failure, then Done after the successful response.
-        try #require(try await waitForUI { requests == 1 && panel.performKeyEquivalent(with: enter) })
+        try #require(
+            try await waitForUI { requests == 1 && Date.now >= retryAt && panel.performKeyEquivalent(with: enter) }
+        )
         try #require(try await waitForUI { requests == 2 && panel.performKeyEquivalent(with: enter) })
         try #require(try await waitForUI { panel.firstResponder is NSTextView })
         let editor = try #require(panel.firstResponder as? NSTextView)
