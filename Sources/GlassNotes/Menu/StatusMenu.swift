@@ -49,7 +49,7 @@ final class StatusMenu: NSObject, NSWindowDelegate {
             return
         }
         let view = QuickCapture(
-            state: state, desktop: desktop, close: { [weak self] in self?.close() },
+            state: state, panel: panel, desktop: desktop, close: { [weak self] in self?.close() },
             showEditor: { [weak self] id in
                 self?.close()
                 self?.desktop.windows[id]?.edit()
