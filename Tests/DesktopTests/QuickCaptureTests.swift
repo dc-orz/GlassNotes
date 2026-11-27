@@ -6,9 +6,25 @@ import Testing
 @testable import GlassNotes
 
 extension NativeDesktopTests {
-    @Test(.enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"))
-    func menuPanelHasTransparentCorners() async throws {
-        guard #available(macOS 14.4, *) else { return }
+    @available(macOS 14.4, *)
+    @Test(
+        .enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"),
+        .enabled(if: !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency, "Requires transparency"))
+    func menuGlassHasTransparentCorners() async throws {
+        try await checkMenuPanelCorners()
+    }
+
+    @available(macOS 14.4, *)
+    @Test(
+        .enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"),
+        .enabled(
+            if: NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency, "Requires Reduce Transparency"))
+    func menuSolidBackgroundHasTransparentCorners() async throws {
+        try await checkMenuPanelCorners()
+    }
+
+    @available(macOS 14.4, *)
+    private func checkMenuPanelCorners() async throws {
         let app = NSApplication.shared
         app.setActivationPolicy(.accessory)
         app.finishLaunching()
