@@ -66,7 +66,11 @@ open dist/GlassNotes.app
 
 Local builds use an ad hoc signature. For public binary distribution, sign with Developer ID and notarize the disk image. [Apple's distribution guide](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution)
 
-GitHub Actions runs `make check` and `make dmg` on macOS for pushes and pull requests to `main`. Use `make smoke` locally to test window focus and keyboard interaction in a logged-in desktop session.
+GitHub Actions runs `make check` and `make dmg` on macOS for pushes and pull requests to `main`. Download **GlassNotes-arm64** from the workflow run’s **Artifacts** section for the verified DMG and its SHA-256 checksum. Use `make smoke` locally to test window focus and keyboard interaction in a logged-in desktop session.
+
+## Publish a release
+
+Update `CFBundleShortVersionString` and increment `CFBundleVersion` in `Packaging/Info.plist`. Once that change has merged and CI passes, tag the release commit with `v` followed by the exact app version and push that tag. The tag workflow builds and verifies the arm64 DMG on macOS, then publishes those same bytes and their checksum to GitHub Releases. If an upload is interrupted, rerun the failed release job to resume the draft.
 
 ## Contributing
 
