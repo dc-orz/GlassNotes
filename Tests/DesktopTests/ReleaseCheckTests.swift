@@ -31,6 +31,11 @@ struct ReleaseCheckTests {
         #expect(throws: ReleaseCheck.Failure.rateLimited) {
             try result("", installed: "1", http: 403, headers: ["X-RateLimit-Remaining": "0"])
         }
+        #expect(throws: ReleaseCheck.Failure.rateLimited) {
+            try result(
+                "", installed: "1", http: 403, headers: ["Retry-After": "60", "X-RateLimit-Remaining": "42"])
+        }
+        #expect(throws: ReleaseCheck.Failure.http(403)) { try result("", installed: "1", http: 403) }
         for body in ["{}", #"{"tag_name":"v1..1"}"#, #"{"tag_name":"v"}"#] {
             #expect(throws: ReleaseCheck.Failure.invalidResponse) { try result(body, installed: "1") }
         }

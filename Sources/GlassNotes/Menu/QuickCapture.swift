@@ -10,13 +10,14 @@ struct QuickCapture: View {
     let showEditor: (UUID) -> Void
     let recordShortcut: () -> Void
     @ObservedObject var shortcut: CaptureShortcut
+    var checkForUpdate: @MainActor () async throws -> ReleaseCheck.Result = ReleaseCheck.latest
     @ViewState private var archived = false
     @FocusState private var focused: Bool
-    private enum Detail: Equatable {
+    enum Detail: Equatable {
         case glass, shortcut, update
         case delete(Note)
     }
-    @ViewState private var detail: Detail?
+    @ViewState var detail: Detail?
 
     private var displayed: [Note] {
         state.notes.filter { ($0.completedAt != nil) == archived }
@@ -33,15 +34,14 @@ struct QuickCapture: View {
                 switch detail {
                 case .glass: GlassAdjustmentPane { detail = nil }
                 case .shortcut: ShortcutSettingsPane(shortcut: shortcut, record: recordShortcut) { detail = nil }
-                case .update: UpdatePane { detail = nil }
+                case .update: UpdatePane(checkForUpdate: checkForUpdate) { detail = nil }
                 case .delete(let note): confirmDeletion(note)
                 case nil: EmptyView()
                 }
             }
             .padding(Tokens.Space.inset)
             .frame(width: Tokens.Size.menuWidth)
-            .onAppear { focused = true }
-            .onChange(of: detail) { _, value in focused = value == nil }
+            .onChange(of: detail, initial: true) { _, value in focused = value == nil }
     }
 
     private func confirmDeletion(_ note: Note) -> some View {

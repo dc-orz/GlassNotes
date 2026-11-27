@@ -2,6 +2,7 @@ import NoteDesign
 import SwiftUI
 
 struct UpdatePane: View {
+    let checkForUpdate: @MainActor () async throws -> ReleaseCheck.Result
     let done: () -> Void
     private enum Phase {
         case checking
@@ -11,12 +12,17 @@ struct UpdatePane: View {
     @ViewState private var phase = Phase.checking
     @ViewState private var attempt = 0
 
+    private var doneShortcut: KeyboardShortcut? {
+        if case .finished = phase { .defaultAction } else { nil }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Tokens.Space.section) {
             HStack {
                 Text("检查更新").font(Tokens.TypeStyle.heading)
                 Spacer()
                 Button("完成", action: done)
+                    .keyboardShortcut(doneShortcut)
             }
             LabeledContent("当前版本", value: ReleaseCheck.installedVersion ?? "本地开发版")
             switch phase {
@@ -39,12 +45,13 @@ struct UpdatePane: View {
                     phase = .checking
                     attempt += 1
                 }
+                .keyboardShortcut(.defaultAction)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .task(id: attempt) {
             do {
-                let result = try await ReleaseCheck.latest()
+                let result = try await checkForUpdate()
                 if !Task.isCancelled { phase = .finished(result) }
             } catch {
                 if !Task.isCancelled { phase = .failed(error.localizedDescription) }

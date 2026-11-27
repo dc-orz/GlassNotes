@@ -49,7 +49,9 @@ enum ReleaseCheck {
         case 200: break
         case 404: throw Failure.noRelease
         case 429: throw Failure.rateLimited
-        case 403 where response.value(forHTTPHeaderField: "X-RateLimit-Remaining") == "0":
+        case 403
+        where response.value(forHTTPHeaderField: "X-RateLimit-Remaining") == "0"
+            || response.value(forHTTPHeaderField: "Retry-After") != nil:
             throw Failure.rateLimited
         default: throw Failure.http(response.statusCode)
         }
