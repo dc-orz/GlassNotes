@@ -11,9 +11,7 @@ struct QuickCapture: View {
     let showEditor: (UUID) -> Void
     let recordShortcut: () -> Void
     @ObservedObject var shortcut: CaptureShortcut
-    var checkForUpdate: @MainActor () async throws -> ReleaseCheck.Result = {
-        try await ReleaseCheck.shared.latest()
-    }
+    let updates: UpdateSession
     @ViewState private var archived = false
     @FocusState private var focused: Bool
     @ViewState private var hasVisibleMarkedText = false
@@ -38,7 +36,7 @@ struct QuickCapture: View {
                 switch detail {
                 case .glass: GlassAdjustmentPane { detail = nil }
                 case .shortcut: ShortcutSettingsPane(shortcut: shortcut, record: recordShortcut) { detail = nil }
-                case .update: UpdatePane(checkForUpdate: checkForUpdate) { detail = nil }
+                case .update: UpdatePane(updates: updates) { detail = nil }
                 case .delete(let note): confirmDeletion(note)
                 case nil: EmptyView()
                 }

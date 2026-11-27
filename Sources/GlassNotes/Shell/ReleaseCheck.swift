@@ -8,9 +8,11 @@ actor ReleaseCheck {
 
     private struct Release: Decodable {
         let tag: String
+        let assets: [ReleasePackage.Asset]?
 
         private enum CodingKeys: String, CodingKey {
             case tag = "tag_name"
+            case assets
         }
     }
 
@@ -22,6 +24,7 @@ actor ReleaseCheck {
         let latest: String
         let url: URL
         let status: Status
+        let package: ReleasePackage?
     }
 
     enum Failure: LocalizedError, Equatable {
@@ -59,7 +62,10 @@ actor ReleaseCheck {
         }
     }
 
-    static func result(data: Data, response: HTTPURLResponse, installed: String?, now: Date = .now) throws
+    static func result(
+        data: Data, response: HTTPURLResponse, installed: String?, now: Date = .now,
+        architecture: MacArchitecture = .current
+    ) throws
         -> Result
     {
         switch response.statusCode {
@@ -82,7 +88,12 @@ actor ReleaseCheck {
         }
         let url = URL(string: "https://github.com/dc-orz/GlassNotes/releases/tag/")!.appendingPathComponent(
             release.tag)
-        return Result(latest: latest, url: url, status: status)
+        let package =
+            status == .available
+            ? ReleasePackage.select(
+                from: release.assets ?? [], version: latest, tag: release.tag, architecture: architecture)
+            : nil
+        return Result(latest: latest, url: url, status: status, package: package)
     }
 
     private static func limitError(data: Data, response: HTTPURLResponse, now: Date) -> Failure {
