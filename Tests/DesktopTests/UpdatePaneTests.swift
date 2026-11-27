@@ -25,7 +25,7 @@ extension NativeDesktopTests {
         var requests = 0
         var retryAt = Date.distantPast
         let capture = QuickCapture(
-            state: state, desktop: DesktopWindows(state: state), close: {}, showEditor: { _ in },
+            state: state, panel: panel, desktop: DesktopWindows(state: state), close: {}, showEditor: { _ in },
             recordShortcut: {}, shortcut: CaptureShortcut {},
             checkForUpdate: {
                 requests += 1

@@ -5,6 +5,7 @@ import SwiftUI
 
 struct QuickCapture: View {
     @ObservedObject var state: AppState
+    weak var panel: NSPanel?
     let desktop: DesktopWindows
     let close: () -> Void
     let showEditor: (UUID) -> Void
@@ -15,6 +16,7 @@ struct QuickCapture: View {
     }
     @ViewState private var archived = false
     @FocusState private var focused: Bool
+    @ViewState private var hasVisibleMarkedText = false
     enum Detail: Equatable {
         case glass, shortcut, update
         case delete(Note)
@@ -84,7 +86,7 @@ struct QuickCapture: View {
                 .menuStyle(.borderlessButton).fixedSize().accessibilityLabel("设置")
             }
             ZStack(alignment: .topLeading) {
-                if state.captureDraft.isEmpty {
+                if state.captureDraft.isEmpty && !hasVisibleMarkedText {
                     Text("记下一件事…").font(Tokens.TypeStyle.ink)
                         .foregroundStyle(.secondary).padding(.leading, Tokens.Space.small)
                         .allowsHitTesting(false).accessibilityHidden(true)
@@ -92,6 +94,16 @@ struct QuickCapture: View {
                 InkEditor(text: $state.captureDraft, label: "新便签").focused($focused)
             }
             .frame(height: Tokens.Size.inputHeight)
+            // The draft binding can stay empty while the text view is composing its first character.
+            .onReceive(NotificationCenter.default.publisher(for: NSTextView.didChangeSelectionNotification)) {
+                event in
+                guard let editor = event.object as? NSTextView, editor === panel?.firstResponder else { return }
+                // AppKit can still report marked text while notifying us that the last character was removed.
+                hasVisibleMarkedText = editor.hasMarkedText() && !editor.string.isEmpty
+            }
+            .onChange(of: focused) { _, editing in
+                if !editing { hasVisibleMarkedText = false }
+            }
             HStack {
                 Spacer()
                 Button("贴到桌面") { if desktop.addDraft() { close() } }
