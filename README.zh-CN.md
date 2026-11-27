@@ -66,7 +66,11 @@ open dist/GlassNotes.app
 
 本地构建使用临时签名。公开分发二进制版本时，应使用 Developer ID 签名并对镜像进行公证。[Apple 分发指南](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution)
 
-推送到 `main` 或向该分支提交拉取请求时，GitHub Actions 会在 macOS 上运行 `make check` 和 `make dmg`。窗口焦点和键盘交互可在已登录的 Mac 桌面上用 `make smoke` 验证。
+推送到 `main` 或向该分支提交拉取请求时，GitHub Actions 会在 macOS 上运行 `make check` 和 `make dmg`。在该次运行的 **Artifacts** 区域下载 **GlassNotes-arm64**，即可取得经过校验的 DMG 和 SHA-256 校验文件。窗口焦点和键盘交互可在已登录的 Mac 桌面上用 `make smoke` 验证。
+
+## 发布版本
+
+在 `Packaging/Info.plist` 中更新 `CFBundleShortVersionString` 并递增 `CFBundleVersion`。合并且 CI 通过后，在发布提交上打一个由 `v` 加应用版本号组成的标签，将该标签推送到 GitHub。标签工作流会在 macOS 上构建并验证 arm64 DMG，再将同一份安装包及其校验文件发布到 GitHub Releases。上传中断时，可重跑失败的发布任务，继续完成草稿。
 
 ## 参与开发
 
