@@ -6,6 +6,51 @@ import Testing
 @testable import GlassNotes
 
 extension NativeDesktopTests {
+    @available(macOS 14.4, *)
+    @Test(
+        .enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"),
+        .enabled(if: !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency, "Requires transparency"))
+    func menuGlassHasTransparentCorners() async throws {
+        try await checkMenuPanelCorners()
+    }
+
+    @available(macOS 14.4, *)
+    @Test(
+        .enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"),
+        .enabled(
+            if: NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency, "Requires Reduce Transparency"))
+    func menuSolidBackgroundHasTransparentCorners() async throws {
+        try await checkMenuPanelCorners()
+    }
+
+    @available(macOS 14.4, *)
+    private func checkMenuPanelCorners() async throws {
+        let app = NSApplication.shared
+        app.setActivationPolicy(.accessory)
+        app.finishLaunching()
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let state = AppState(library: try NoteLibrary(directory: folder))
+        let menu = StatusMenu(state: state, desktop: DesktopWindows(state: state), shortcut: CaptureShortcut {})
+        menu.show()
+        let panel = try #require(app.windows.first { $0.title == "快速记录" && $0.isVisible })
+        defer { if panel.isVisible { menu.toggle() } }
+
+        for appearance in [NSAppearance.Name.aqua, .darkAqua] {
+            panel.appearance = NSAppearance(named: appearance)
+            try await Task.sleep(for: .milliseconds(350))
+            let bitmap = try await windowBitmap(of: panel)
+            let center = try #require(bitmap.colorAt(x: bitmap.pixelsWide / 2, y: bitmap.pixelsHigh / 2))
+            #expect(center.alphaComponent > 0)
+            for x in [1, bitmap.pixelsWide - 2] {
+                for y in [1, bitmap.pixelsHigh - 2] {
+                    #expect(
+                        bitmap.colorAt(x: x, y: y)?.alphaComponent == 0, "Corner (\(x), \(y)) in \(appearance)")
+                }
+            }
+        }
+    }
+
     @Test(
         .enabled(if: ProcessInfo.processInfo.environment["GLASSNOTES_WINDOW_TESTS"] == "1"),
         arguments: [NSAppearance.Name.aqua, .darkAqua])

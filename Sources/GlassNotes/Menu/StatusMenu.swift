@@ -61,6 +61,8 @@ final class StatusMenu: NSObject, NSWindowDelegate {
             }, shortcut: shortcut, updates: updates
         )
         .background(GlassSurface())
+        // The window shadow follows the panel's alpha, including glass drawn outside the rounded edge.
+        .clipShape(.rect(cornerRadius: Tokens.Size.radius, style: .continuous))
         .onExitCommand { [weak self] in self?.close() }
         let host = NSHostingView(rootView: view)
         panel.contentView = host

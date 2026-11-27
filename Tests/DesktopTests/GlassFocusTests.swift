@@ -95,9 +95,20 @@ extension NativeDesktopTests {
         }
     }
 
-    /// Window-only capture measures the material without reading the user's desktop.
     @available(macOS 14.4, *)
     private func glassSample(in panel: NSWindow) async throws -> [CGFloat] {
+        let bitmap = try await windowBitmap(of: panel)
+        let center = try #require(
+            bitmap.colorAt(x: bitmap.pixelsWide / 2, y: bitmap.pixelsHigh / 2)?.usingColorSpace(.sRGB))
+        return [
+            center.redComponent * center.alphaComponent, center.greenComponent * center.alphaComponent,
+            center.blueComponent * center.alphaComponent, center.alphaComponent,
+        ]
+    }
+
+    /// Window-only capture measures the material without reading the user's desktop.
+    @available(macOS 14.4, *)
+    func windowBitmap(of panel: NSWindow) async throws -> NSBitmapImageRep {
         let content = try await SCShareableContent.currentProcess
         let window = try #require(content.windows.first { $0.windowID == UInt32(panel.windowNumber) })
         let config = SCStreamConfiguration()
@@ -107,12 +118,6 @@ extension NativeDesktopTests {
         config.ignoreShadowsSingleWindow = true
         let image = try await SCScreenshotManager.captureImage(
             contentFilter: SCContentFilter(desktopIndependentWindow: window), configuration: config)
-        let bitmap = NSBitmapImageRep(cgImage: image)
-        let center = try #require(
-            bitmap.colorAt(x: bitmap.pixelsWide / 2, y: bitmap.pixelsHigh / 2)?.usingColorSpace(.sRGB))
-        return [
-            center.redComponent * center.alphaComponent, center.greenComponent * center.alphaComponent,
-            center.blueComponent * center.alphaComponent, center.alphaComponent,
-        ]
+        return NSBitmapImageRep(cgImage: image)
     }
 }
