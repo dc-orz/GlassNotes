@@ -13,7 +13,7 @@ struct QuickCapture: View {
     @ViewState private var archived = false
     @FocusState private var focused: Bool
     private enum Detail: Equatable {
-        case glass, shortcut
+        case glass, shortcut, update
         case delete(Note)
     }
     @ViewState private var detail: Detail?
@@ -33,6 +33,7 @@ struct QuickCapture: View {
                 switch detail {
                 case .glass: GlassAdjustmentPane { detail = nil }
                 case .shortcut: ShortcutSettingsPane(shortcut: shortcut, record: recordShortcut) { detail = nil }
+                case .update: UpdatePane { detail = nil }
                 case .delete(let note): confirmDeletion(note)
                 case nil: EmptyView()
                 }
@@ -67,13 +68,13 @@ struct QuickCapture: View {
                     Divider()
                     Button("快速记录快捷键…") { detail = .shortcut }
                     Divider()
-                    if let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString")
-                        as? String
-                    {
+                    if let version = ReleaseCheck.installedVersion {
                         Text("版本 \(version)")
                     } else {
                         Text("本地开发版")
                     }
+                    Button("检查更新") { detail = .update }
+                    Divider()
                     Button("退出 GlassNotes") { NSApp.terminate(nil) }.keyboardShortcut("q")
                 } label: {
                     Image(systemName: "ellipsis.circle")
