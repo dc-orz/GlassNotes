@@ -126,7 +126,7 @@ final class StatusMenu: NSObject, NSWindowDelegate {
 
     private func finishCLIAuthorization() {
         guard panel.isVisible, !panel.isKeyWindow else { return }
-        if cliSettings.message != nil {
+        if cliSettings.lastInstallationError != nil {
             // Authorization may have taken focus. Keep the error and retry action together.
             panel.makeKeyAndOrderFront(nil)
         } else {

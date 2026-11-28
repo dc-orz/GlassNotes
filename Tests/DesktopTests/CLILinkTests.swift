@@ -47,7 +47,7 @@ struct CLILinkTests {
         settings.dismissPresentation(presentation)
         #expect(settings.authorizationPresentation == nil)
         while settings.installing { await Task.yield() }
-        #expect(settings.message == nil)
+        #expect(settings.lastInstallationError == nil)
         #expect(!restoredFocus)
         #expect(settings.status == .installed)
         #expect(try files.destinationOfSymbolicLink(atPath: link.command.path) == link.helper.path)
@@ -61,6 +61,25 @@ struct CLILinkTests {
         while settings.installing { await Task.yield() }
         #expect(restoredFocus)
         #expect(settings.authorizationPresentation == nil)
+    }
+
+    @Test func dismissedInstallFailureCanBeReadWithoutRestoringFocus() async throws {
+        let root = files.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? files.removeItem(at: root) }
+        let link = try fixture(in: root)
+        let settings = CLILinkSettings(link: link)
+        try files.createDirectory(at: link.command.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data("other command".utf8).write(to: link.command)
+        var restoredFocus = false
+        settings.didFinishInstallation = { restoredFocus = true }
+        let presentation = UUID()
+        settings.install(from: presentation)
+        settings.dismissPresentation(presentation)
+        while settings.installing { await Task.yield() }
+        settings.refresh()
+        #expect(settings.status == .occupied)
+        #expect(settings.lastInstallationError != nil)
+        #expect(!restoredFocus)
     }
 
     @Test func preservesOccupiedAndDanglingEntriesAndRecognizesRelativeLinks() throws {
@@ -139,7 +158,7 @@ extension NativeDesktopTests {
             try await Task.sleep(for: .milliseconds(20))
         }
         #expect(settings.status == .installed)
-        menu.toggle()
+        if panel.isVisible { menu.toggle() }
         menu.checkCLIOnLaunch(inBackground: false)
         #expect(visiblePanel() == nil)
         try FileManager.default.removeItem(at: link.command)

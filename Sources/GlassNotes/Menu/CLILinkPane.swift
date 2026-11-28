@@ -33,7 +33,8 @@ struct CLILinkPane: View {
                 Text(verbatim: reason)
                 Button("重新检测", action: settings.refresh)
             }
-            if let message = settings.message {
+            if let message = settings.lastInstallationError {
+                Text("上次启用未完成").font(Tokens.TypeStyle.help)
                 Text(verbatim: message).font(Tokens.TypeStyle.help).foregroundStyle(.secondary)
             }
             Toggle("启动时不再提醒", isOn: $settings.suppressReminder)
