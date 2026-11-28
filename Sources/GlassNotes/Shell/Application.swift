@@ -44,7 +44,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if Bundle.main.bundleIdentifier != nil {
                 do {
                     commands = try CommandServer(desktop: desktop)
-                    if background { _ = dup2(FileHandle.nullDevice.fileDescriptor, STDERR_FILENO) }
+                    if background {
+                        let sink = try FileHandle(forWritingTo: URL(fileURLWithPath: "/dev/null"))
+                        defer { try? sink.close() }
+                        guard dup2(sink.fileDescriptor, STDERR_FILENO) >= 0 else {
+                            throw CommandSocket.systemError()
+                        }
+                    }
                     menu?.checkCLIOnLaunch(inBackground: background)
                 } catch {
                     if background { throw error }

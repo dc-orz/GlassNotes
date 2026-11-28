@@ -44,6 +44,7 @@ final class StatusMenu: NSObject, NSWindowDelegate {
         panel.isReleasedWhenClosed = false
         panel.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
         panel.delegate = self
+        cliSettings.didFinishInstallation = { [weak self] in self?.finishCLIAuthorization() }
     }
 
     @objc func toggle() {
@@ -117,6 +118,16 @@ final class StatusMenu: NSObject, NSWindowDelegate {
     }
 
     func windowDidResignKey(_ notification: Notification) {
-        close()
+        if !cliSettings.installing { close() }
+    }
+
+    private func finishCLIAuthorization() {
+        guard panel.isVisible, !panel.isKeyWindow else { return }
+        if cliSettings.message != nil {
+            // Authorization may have taken focus. Keep the error and retry action together.
+            panel.makeKeyAndOrderFront(nil)
+        } else {
+            close()
+        }
     }
 }

@@ -6,6 +6,7 @@ final class CLILinkSettings: ObservableObject {
     private static let suppressionKey = "suppressCLILinkReminder"
     private let link: CLILink
     private let defaults: UserDefaults
+    var didFinishInstallation: (() -> Void)?
     @Published private(set) var status: CLILink.Status
     @Published private(set) var installing = false
     @Published private(set) var message: String?
@@ -37,6 +38,7 @@ final class CLILinkSettings: ObservableObject {
             }
             refresh()
             installing = false
+            didFinishInstallation?()
         }
     }
 }
