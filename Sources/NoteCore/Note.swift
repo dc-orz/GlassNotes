@@ -19,6 +19,7 @@ public struct Note: Identifiable, Codable, Equatable, Sendable {
     private let ink: String
     public var placement: Placement
     public let createdAt: Date
+    public internal(set) var updatedAt: Date?
     public var completedAt: Date?
 
     public init(text: String, placement: Placement, createdAt: Date = .now) {
@@ -27,6 +28,7 @@ public struct Note: Identifiable, Codable, Equatable, Sendable {
         self.ink = "chalk"
         self.placement = placement
         self.createdAt = createdAt
+        self.updatedAt = createdAt
     }
 
     public var title: String { String(text.split(whereSeparator: \.isNewline).first ?? "") }

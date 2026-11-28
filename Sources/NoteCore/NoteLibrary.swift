@@ -50,25 +50,26 @@ public enum LibraryError: LocalizedError {
         }
     }
 
-    public func add(text: String, at position: Placement) throws {
+    @discardableResult public func add(text: String, at position: Placement) throws -> Note {
         let note = Note(text: try Self.content(text), placement: position)
         try commit(notes + [note])
+        return note
     }
 
     public func edit(_ id: UUID, text: String) throws {
         let text = try Self.content(text)
-        try update(id) { $0.text = text }
+        try update(id, modifiedAt: .now) { $0.text = text }
     }
 
     public func move(_ id: UUID, to position: Placement) throws {
         try update(id) { $0.placement = position }
     }
 
-    public func complete(_ id: UUID, at date: Date = .now) throws {
-        try update(id) { if $0.completedAt == nil { $0.completedAt = date } }
+    @discardableResult public func complete(_ id: UUID, at date: Date = .now) throws -> Note {
+        try update(id, modifiedAt: date) { if $0.completedAt == nil { $0.completedAt = date } }
     }
 
-    public func restore(_ id: UUID) throws { try update(id) { $0.completedAt = nil } }
+    public func restore(_ id: UUID) throws { try update(id, modifiedAt: .now) { $0.completedAt = nil } }
 
     public func deleteCompleted(_ id: UUID) throws {
         guard let index = notes.firstIndex(where: { $0.id == id }) else { return }
@@ -78,11 +79,16 @@ public enum LibraryError: LocalizedError {
         try commit(next)
     }
 
-    private func update(_ id: UUID, change: (inout Note) -> Void) throws {
+    @discardableResult
+    private func update(_ id: UUID, modifiedAt: Date? = nil, change: (inout Note) -> Void) throws -> Note {
         guard let index = notes.firstIndex(where: { $0.id == id }) else { throw LibraryError.missingNote }
         var next = notes
         change(&next[index])
-        if next[index] != notes[index] { try commit(next) }
+        guard next[index] != notes[index] else { return notes[index] }
+        if let modifiedAt { next[index].updatedAt = modifiedAt }
+        let updated = next[index]
+        try commit(next)
+        return updated
     }
 
     private static func content(_ text: String) throws -> String {

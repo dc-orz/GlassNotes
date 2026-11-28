@@ -50,6 +50,37 @@ struct NoteLibraryTests {
         #expect(try NoteLibrary(directory: folder).notes == [active])
     }
 
+    @Test func updatedAtTracksSavedTaskChanges() throws {
+        let folder = temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let original = Note(text: "first", placement: p, createdAt: Date(timeIntervalSince1970: 123))
+        let id = original.id
+        let restoredAt: Date?
+        do {
+            let library = try NoteLibrary(directory: folder) { [original] }
+            #expect(original.updatedAt == original.createdAt)
+            let newNote = try library.add(text: "second", at: p)
+            #expect(newNote.updatedAt == newNote.createdAt)
+            try library.edit(id, text: "edited")
+            let editedAt = try #require(library.notes[0].updatedAt)
+            #expect(editedAt > original.createdAt)
+            try library.edit(id, text: "  edited ")
+            try library.move(id, to: Placement(display: "main", x: 0.2, y: 0.3))
+            try library.restore(id)
+            #expect(library.notes[0].updatedAt == editedAt)
+            let finished = try library.complete(id)
+            #expect(finished.updatedAt == finished.completedAt)
+            #expect(try library.complete(id, at: .distantFuture) == finished)
+            try library.restore(id)
+            restoredAt = library.notes[0].updatedAt
+            #expect(try #require(restoredAt) >= #require(finished.updatedAt))
+        }
+        let saved = try NoteLibrary(directory: folder).notes[0]
+        #expect(saved.createdAt == original.createdAt)
+        #expect(saved.updatedAt == restoredAt)
+        #expect(saved.completedAt == nil)
+    }
+
     @Test func historicalInksRoundTripWithoutAStyleMigration() throws {
         let folder = temporaryFolder()
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
@@ -69,6 +100,9 @@ struct NoteLibraryTests {
         let library = try NoteLibrary(directory: folder)
         #expect(try Data(contentsOf: file) == oldData)
         #expect(library.notes.allSatisfy { $0.completedAt != nil && $0.placement == p })
+        #expect(library.notes.allSatisfy { $0.updatedAt == nil })
+        try library.move(ids[1], to: Placement(display: "main", x: 0.2, y: 0.3))
+        #expect(library.notes[1].updatedAt == nil)
         try library.restore(ids[0])
         try library.edit(ids[0], text: "恢复后的便签")
         try library.add(text: "新便签", at: p)
@@ -76,6 +110,8 @@ struct NoteLibraryTests {
         let saved = try #require(stored["notes"] as? [[String: Any]])
         #expect(saved.compactMap { $0["ink"] as? String } == oldInks + ["chalk"])
         #expect(library.notes[0].completedAt == nil)
+        #expect(saved[0]["updatedAt"] as? Double != nil)
+        #expect(saved[1]["updatedAt"] == nil)
         #expect(library.notes[1].completedAt != nil)
     }
 
