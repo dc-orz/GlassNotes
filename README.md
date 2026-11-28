@@ -75,6 +75,7 @@ open dist/GlassNotes.app
 | --- | --- |
 | `make check` | Check formatting and design conventions, then run the unit tests. |
 | `make smoke` | Exercise native windows in a logged-in Mac desktop session. |
+| `make cli-smoke` | Run the packaged CLI through a symlink against a temporary library in a logged-in Mac session. |
 | `make fmt` | Format Swift sources. |
 | `make dmg` | Build the app and create a drag-to-install disk image in `dist/` for the build machine's architecture. |
 

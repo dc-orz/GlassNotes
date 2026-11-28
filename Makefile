@@ -5,7 +5,7 @@ TEST_PLUGIN_DIR := $(dir $(shell xcrun --find swiftc))../lib/swift/host/plugins/
 ifneq ($(wildcard $(TEST_PLUGIN_DIR)/libTestingMacros.dylib),)
 TEST_FLAGS := -Xswiftc -plugin-path -Xswiftc "$(TEST_PLUGIN_DIR)"
 endif
-.PHONY: check style test smoke app dmg fmt format-check
+.PHONY: check style test smoke cli-smoke app dmg fmt format-check
 
 style:
 	python3 scripts/check_design.py
@@ -27,6 +27,9 @@ smoke:
 app: style
 	swift build -c release $(SPM_FLAGS) -Xlinker -platform_version -Xlinker macos -Xlinker 14.0 -Xlinker "$(shell xcrun --sdk macosx --show-sdk-version)"
 	bash scripts/package.sh "$$(swift build -c release $(SPM_FLAGS) --show-bin-path)"
+
+cli-smoke: app
+	python3 scripts/test-packaged-cli.py
 
 dmg: app
 	bash scripts/dmg.sh

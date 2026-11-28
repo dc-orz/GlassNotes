@@ -22,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var commands: CommandServer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let background = CommandLine.arguments.contains(NoteCommand.backgroundLaunchArgument)
         do {
             let base = try FileManager.default.url(
                 for: .applicationSupportDirectory, in: .userDomainMask,
@@ -40,18 +41,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             setupEditMenu()
             desktop.reconcile()
             shortcut.start()
-            if let id = Bundle.main.bundleIdentifier {
+            if Bundle.main.bundleIdentifier != nil {
                 do {
-                    commands = try CommandServer(bundleID: id, desktop: desktop)
-                    menu?.checkCLIOnLaunch(
-                        inBackground: CommandLine.arguments.contains(NoteCommand.backgroundLaunchArgument))
+                    commands = try CommandServer(desktop: desktop)
+                    if background {
+                        let sink = try FileHandle(forWritingTo: URL(fileURLWithPath: "/dev/null"))
+                        defer { try? sink.close() }
+                        guard dup2(sink.fileDescriptor, STDERR_FILENO) >= 0 else {
+                            throw CommandSocket.systemError()
+                        }
+                    }
+                    menu?.checkCLIOnLaunch(inBackground: background)
                 } catch {
+                    if background { throw error }
                     let alert = NSAlert(error: error)
                     alert.messageText = "本地 CLI 暂不可用"
                     alert.runModal()
                 }
             }
         } catch {
+            if background {
+                let message = NoteCommand.startupErrorPrefix + error.localizedDescription + "\n"
+                FileHandle.standardError.write(Data(message.utf8))
+                NSApp.terminate(nil)
+                return
+            }
             NSApp.activate()
             let alert = NSAlert(error: error)
             alert.messageText = "无法打开 GlassNotes"
