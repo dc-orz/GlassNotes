@@ -117,6 +117,6 @@ final class StatusMenu: NSObject, NSWindowDelegate {
     }
 
     func windowDidResignKey(_ notification: Notification) {
-        if !cliSettings.installing { close() }
+        close()
     }
 }

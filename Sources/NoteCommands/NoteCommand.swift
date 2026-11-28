@@ -7,16 +7,16 @@ package struct CommandError: LocalizedError {
     package var errorDescription: String? { message }
 }
 
-package enum NoteCommand: Codable {
+package enum NoteCommand: Codable, Sendable {
     package static let backgroundLaunchArgument = "--glassnotes-cli-launch"
+    package static let startupErrorPrefix = "GlassNotes CLI startup: "
     case add(String)
     case list
     case complete(UUID)
 
-    package static func portName(for bundleID: String) -> String { bundleID + ".commands.v1" }
 }
 
-package enum CommandReply: Codable {
+package enum CommandReply: Codable, Sendable {
     case note(CommandNote)
     case list([CommandNote])
     case failure(String)
@@ -32,7 +32,7 @@ package enum CommandReply: Codable {
     }
 }
 
-package struct CommandNote: Codable {
+package struct CommandNote: Codable, Sendable {
     let id: UUID
     let text: String
     let createdAt: String

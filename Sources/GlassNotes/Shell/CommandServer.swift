@@ -1,53 +1,64 @@
-import CoreFoundation
+import Darwin
 import Foundation
 import NoteCommands
 
-@MainActor
 final class CommandServer {
-    private let port: CFMessagePort
+    private let source: DispatchSourceRead
 
-    init(bundleID: String, desktop: DesktopWindows) throws {
-        var context = CFMessagePortContext(
-            version: 0, info: Unmanaged.passUnretained(desktop).toOpaque(),
-            retain: { pointer in
-                if let pointer { _ = Unmanaged<DesktopWindows>.fromOpaque(pointer).retain() }
-                return pointer
-            },
-            release: { pointer in
-                if let pointer { Unmanaged<DesktopWindows>.fromOpaque(pointer).release() }
-            }, copyDescription: nil)
-        let name = NoteCommand.portName(for: bundleID) as CFString
-        guard
-            let port = CFMessagePortCreateLocal(
-                nil, name,
-                { _, _, data, info in
-                    guard let data, let info else { return nil }
-                    let desktop = Unmanaged<DesktopWindows>.fromOpaque(info).takeUnretainedValue()
-                    let request = data as Data
-                    let response = MainActor.assumeIsolated {
-                        CommandServer.respond(to: request, desktop: desktop)
-                    }
-                    guard let response else { return nil }
-                    return .passRetained(response as CFData)
-                }, &context, nil)
-        else { throw CommandError("未能开启 GlassNotes 本地命令接口。") }
-        self.port = port
-        CFMessagePortSetDispatchQueue(port, .main)
+    init(desktop: DesktopWindows) throws {
+        let path = try CommandSocket.path(for: getpid())
+        let listener = try CommandSocket(descriptor: socket(AF_UNIX, SOCK_STREAM, 0))
+        let fd = listener.handle.fileDescriptor
+        // A previously killed app may have left this user's socket behind before its PID was reused.
+        var stale = stat()
+        if lstat(path, &stale) == 0 {
+            guard stale.st_mode & S_IFMT == S_IFSOCK, stale.st_uid == geteuid(), unlink(path) == 0
+            else { throw POSIXError(.EADDRINUSE) }
+        }
+        try CommandSocket.withAddress(path) { address, length in
+            guard bind(fd, address, length) == 0 else { throw CommandSocket.systemError() }
+        }
+        guard chmod(path, 0o600) == 0, listen(fd, 16) == 0, fcntl(fd, F_SETFL, O_NONBLOCK) == 0 else {
+            let error = CommandSocket.systemError()
+            unlink(path)
+            throw error
+        }
+        source = DispatchSource.makeReadSource(
+            fileDescriptor: fd, queue: DispatchQueue(label: "GlassNotes.CLI.accept"))
+        source.setEventHandler {
+            let client = accept(fd, nil, nil)
+            guard client >= 0 else { return }
+            DispatchQueue.global(qos: .userInitiated).async { Self.serve(client, desktop: desktop) }
+        }
+        source.setCancelHandler {
+            unlink(path)
+            try? listener.handle.close()
+        }
+        source.resume()
     }
 
-    func stop() { CFMessagePortInvalidate(port) }
+    func stop() { source.cancel() }
 
-    private static func respond(to data: Data, desktop: DesktopWindows) -> Data? {
+    private static func serve(_ descriptor: Int32, desktop: DesktopWindows) {
+        guard let client = try? CommandSocket(descriptor: descriptor) else { return }
+        var uid = uid_t.max
+        var gid = gid_t.max
+        guard getpeereid(descriptor, &uid, &gid) == 0, uid == geteuid() else { return }
         let reply: CommandReply
         do {
-            switch try JSONDecoder().decode(NoteCommand.self, from: data) {
-            case .add(let text): reply = .note(CommandNote(try desktop.add(text: text)))
-            case .list: reply = .list(desktop.state.notes.map(CommandNote.init))
-            case .complete(let id): reply = .note(CommandNote(try desktop.completeSavedNote(id)))
+            // Even JSON-escaped arguments cannot exceed six bytes per byte of the OS argument limit.
+            let data = try client.receive(limit: 6 * Int(sysconf(_SC_ARG_MAX)) + 1024)
+            let command = try JSONDecoder().decode(NoteCommand.self, from: data)
+            reply = try DispatchQueue.main.sync {
+                switch command {
+                case .add(let text): .note(CommandNote(try desktop.add(text: text)))
+                case .list: .list(desktop.state.notes.map(CommandNote.init))
+                case .complete(let id): .note(CommandNote(try desktop.completeSavedNote(id)))
+                }
             }
         } catch {
             reply = .failure(error.localizedDescription)
         }
-        return try? JSONEncoder().encode(reply)
+        if let data = try? JSONEncoder().encode(reply) { try? client.send(data) }
     }
 }

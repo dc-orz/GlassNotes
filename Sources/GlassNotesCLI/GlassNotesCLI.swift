@@ -1,5 +1,4 @@
-import AppKit
-import CoreFoundation
+import Foundation
 import NoteCommands
 
 @main
@@ -20,15 +19,16 @@ enum GlassNotesCLI {
         }
         do {
             let command = try parse(args)
-            let port = try connect()
+            let connection = try AppConnection.connect()
             let request = try JSONEncoder().encode(command)
-            var data: Unmanaged<CFData>?
-            let mode = RunLoop.Mode.default.rawValue as CFString
-            let status = CFMessagePortSendRequest(port, 1, request as CFData, 5, 10, mode, &data)
-            guard status == kCFMessagePortSuccess, let reply = data?.takeRetainedValue() else {
+            let reply: CommandReply
+            do {
+                try connection.send(request)
+                reply = try JSONDecoder().decode(CommandReply.self, from: connection.receive())
+            } catch {
                 throw CommandError("GlassNotes did not confirm the request. Check the list before retrying.")
             }
-            let output = try JSONDecoder().decode(CommandReply.self, from: reply as Data).output()
+            let output = try reply.output()
             FileHandle.standardOutput.write(output + Data([0x0A]))
         } catch {
             FileHandle.standardError.write(Data("glassnotes: \(error.localizedDescription)\n".utf8))
@@ -48,30 +48,4 @@ enum GlassNotesCLI {
         }
     }
 
-    private static func connect() throws -> CFMessagePort {
-        guard let executable = Bundle.main.executableURL?.resolvingSymlinksInPath() else {
-            throw CommandError("Could not locate the glassnotes executable.")
-        }
-        let app = executable.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-        guard app.pathExtension == "app", let bundleID = Bundle(url: app)?.bundleIdentifier else {
-            throw CommandError("Run the glassnotes helper from GlassNotes.app/Contents/Helpers.")
-        }
-        let name = NoteCommand.portName(for: bundleID) as CFString
-        if let port = CFMessagePortCreateRemote(nil, name) { return port }
-        if NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).isEmpty {
-            let launch = Process()
-            launch.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-            launch.arguments = ["-g", app.path, "--args", NoteCommand.backgroundLaunchArgument]
-            try launch.run()
-            launch.waitUntilExit()
-            guard launch.terminationStatus == 0 else { throw CommandError("Could not launch GlassNotes.") }
-        }
-        // Only wait for startup. Never resend a mutation after an uncertain reply.
-        let deadline = ContinuousClock.now + .seconds(10)
-        while ContinuousClock.now < deadline {
-            if let port = CFMessagePortCreateRemote(nil, name) { return port }
-            Thread.sleep(forTimeInterval: 0.1)
-        }
-        throw CommandError("GlassNotes is unavailable. Open the app bundled with this CLI and try again.")
-    }
 }

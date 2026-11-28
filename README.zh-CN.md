@@ -75,6 +75,7 @@ open dist/GlassNotes.app
 | --- | --- |
 | `make check` | 检查格式与设计规范，并运行单元测试。 |
 | `make smoke` | 在已登录的 Mac 图形桌面中运行原生窗口测试。 |
+| `make cli-smoke` | 在已登录的 Mac 桌面中，通过软链调用打包后的 CLI，验证临时便签库的读写和启动错误。 |
 | `make fmt` | 格式化 Swift 源码。 |
 | `make dmg` | 按构建机器架构打包应用，在 `dist/` 生成可拖入安装的镜像。 |
 
