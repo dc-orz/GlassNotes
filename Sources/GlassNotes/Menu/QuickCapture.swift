@@ -12,11 +12,13 @@ struct QuickCapture: View {
     let recordShortcut: () -> Void
     @ObservedObject var shortcut: CaptureShortcut
     let updates: UpdateSession
+    var cliSettings = CLILinkSettings()
     @ViewState private var archived = false
     @FocusState private var focused: Bool
     @ViewState private var hasVisibleMarkedText = false
     enum Detail: Equatable {
         case glass, shortcut, update
+        case cli(reminder: Bool)
         case delete(Note)
     }
     @ViewState var detail: Detail?
@@ -37,6 +39,10 @@ struct QuickCapture: View {
                 case .glass: GlassAdjustmentPane { detail = nil }
                 case .shortcut: ShortcutSettingsPane(shortcut: shortcut, record: recordShortcut) { detail = nil }
                 case .update: UpdatePane(updates: updates) { detail = nil }
+                case .cli(let reminder):
+                    CLILinkPane(settings: cliSettings, reminder: reminder) {
+                        if reminder { close() } else { detail = nil }
+                    }
                 case .delete(let note): confirmDeletion(note)
                 case nil: EmptyView()
                 }
@@ -69,6 +75,7 @@ struct QuickCapture: View {
                     Button("玻璃透明度…") { detail = .glass }
                     Divider()
                     Button("快速记录快捷键…") { detail = .shortcut }
+                    Button("命令行工具…") { detail = .cli(reminder: false) }
                     Divider()
                     if let version = ReleaseCheck.installedVersion {
                         Text("版本 \(version)")

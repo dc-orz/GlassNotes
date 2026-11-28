@@ -1,4 +1,5 @@
 import AppKit
+import NoteCommands
 import NoteCore
 import SwiftUI
 
@@ -18,6 +19,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var desktop: DesktopWindows?
     private var menu: StatusMenu?
     private var shortcut: CaptureShortcut?
+    private var commands: CommandServer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         do {
@@ -30,7 +32,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             let state = AppState(library: library)
             let desktop = DesktopWindows(state: state)
-            let shortcut = CaptureShortcut { [weak self] in self?.menu?.toggle() }
+            let shortcut = CaptureShortcut { [weak self] in self?.menu?.toggleCapture() }
             self.desktop = desktop
             self.shortcut = shortcut
             menu = StatusMenu(state: state, desktop: desktop, shortcut: shortcut)
@@ -38,6 +40,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             setupEditMenu()
             desktop.reconcile()
             shortcut.start()
+            if let id = Bundle.main.bundleIdentifier {
+                do {
+                    commands = try CommandServer(bundleID: id, desktop: desktop)
+                    menu?.checkCLIOnLaunch(
+                        inBackground: CommandLine.arguments.contains(NoteCommand.backgroundLaunchArgument))
+                } catch {
+                    let alert = NSAlert(error: error)
+                    alert.messageText = "本地 CLI 暂不可用"
+                    alert.runModal()
+                }
+            }
         } catch {
             NSApp.activate()
             let alert = NSAlert(error: error)
@@ -61,12 +74,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return .terminateNow
     }
 
-    func applicationWillTerminate(_ notification: Notification) { shortcut?.stop() }
+    func applicationWillTerminate(_ notification: Notification) {
+        commands?.stop()
+        shortcut?.stop()
+    }
 
     private func setupEditMenu() {
         let bar = NSMenu()
         let appMenu = NSMenu()
-        let capture = appMenu.addItem(withTitle: "快速记录…", action: #selector(StatusMenu.show), keyEquivalent: "n")
+        let capture = appMenu.addItem(
+            withTitle: "快速记录…", action: #selector(StatusMenu.showCapture), keyEquivalent: "n")
         capture.target = menu
         appMenu.addItem(.separator())
         appMenu.addItem(

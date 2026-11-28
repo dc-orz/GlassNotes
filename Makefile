@@ -25,7 +25,7 @@ smoke:
 	GLASSNOTES_WINDOW_TESTS=1 swift test $(SPM_FLAGS) $(TEST_FLAGS) --disable-xctest --filter NativeDesktopTests
 
 app: style
-	swift build -c release --product GlassNotes $(SPM_FLAGS) -Xlinker -platform_version -Xlinker macos -Xlinker 14.0 -Xlinker "$(shell xcrun --sdk macosx --show-sdk-version)"
+	swift build -c release $(SPM_FLAGS) -Xlinker -platform_version -Xlinker macos -Xlinker 14.0 -Xlinker "$(shell xcrun --sdk macosx --show-sdk-version)"
 	bash scripts/package.sh "$$(swift build -c release $(SPM_FLAGS) --show-bin-path)"
 
 dmg: app

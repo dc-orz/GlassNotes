@@ -31,6 +31,20 @@ If you have a GlassNotes DMG, open it and drag **GlassNotes.app** into **Applica
 
 To set a global capture shortcut, open **… → 快速记录快捷键 → 录制快捷键** and press the combination. Use Command, Option, or Control with a key, or use a function key on its own. Press Esc to cancel. The **预设** menu restores a preset or turns the shortcut off.
 
+## Local CLI
+
+Move GlassNotes to Applications and open it. Choose **启用命令行** at startup or under **… → 命令行工具** to create a symlink at `/usr/local/bin/glassnotes`. macOS may request administrator authorization. Choose **稍后** to be reminded next launch, or select **启动时不再提醒** to turn off reminders. You can still enable the CLI in settings. With `/usr/local/bin` on your shell's PATH:
+
+```sh
+note=$(glassnotes add "Send the quote by Friday")
+glassnotes list --json
+glassnotes complete "$(printf '%s' "$note" | plutil -extract id raw -)"
+```
+
+The last command completes the note using the `id` returned by `add`. The CLI starts the app in the background when needed. Creating or completing a note prints one JSON object. Listing returns an array of all active and completed notes. Errors go to stderr with a nonzero exit status.
+
+Each record contains `id`, `text`, `createdAt`, `updatedAt`, and `completedAt`. Timestamps use ISO 8601 in UTC. A new note starts with matching creation and modification times. Editing its text, completing it, or restoring it updates `updatedAt`. Moving a window or repeating a completion preserves the timestamp. Older notes report `updatedAt: null` until their text or completion state changes. Active notes have `completedAt: null`.
+
 ## Choose a glass style
 
 Open **… → 玻璃透明度** (Glass appearance) in the menu bar panel. On macOS 26 or later, **使用原生 Liquid Glass** switches every desktop note immediately.

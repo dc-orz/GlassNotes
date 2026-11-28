@@ -217,6 +217,9 @@ struct NativeDesktopTests {
         let ink = try #require(editor.textColor?.usingColorSpace(.sRGB))
         #expect(min(ink.redComponent, ink.greenComponent, ink.blueComponent) > 0.9)
         window.card.draft = "修改后的中文 ✍"
+        #expect(throws: (any Error).self) { try desktop.completeSavedNote(note.id) }
+        #expect(window.card.editing && window.card.note.completedAt == nil)
+        #expect(window.card.draft == "修改后的中文 ✍")
         #expect(window.save())
         #expect(window.card.note.text == "修改后的中文 ✍")
         desktop.complete(note.id)

@@ -7,8 +7,10 @@ stage=$(mktemp -d dist/.packaging.XXXXXX)
 trap 'rm -rf "$stage"' EXIT
 bundle="$stage/GlassNotes.app"
 target="dist/GlassNotes.app"
-mkdir -p "$bundle/Contents/MacOS" "$bundle/Contents/Resources"
+mkdir -p "$bundle/Contents/MacOS" "$bundle/Contents/Helpers" "$bundle/Contents/Resources"
 install -m 755 "$bin_dir/GlassNotes" "$bundle/Contents/MacOS/GlassNotes"
+install -m 755 "$bin_dir/GlassNotesCLI" "$bundle/Contents/Helpers/glassnotes"
+codesign --force --sign - "$bundle/Contents/Helpers/glassnotes"
 install -m 644 Packaging/Info.plist "$bundle/Contents/Info.plist"
 install -m 644 Packaging/AppIcon.icns "$bundle/Contents/Resources/AppIcon.icns"
 install -m 644 Packaging/MenuBarTemplate.png "$bundle/Contents/Resources/MenuBarTemplate.png"

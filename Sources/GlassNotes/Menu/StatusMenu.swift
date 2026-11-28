@@ -12,11 +12,17 @@ final class StatusMenu: NSObject, NSWindowDelegate {
     private let desktop: DesktopWindows
     private let shortcut: CaptureShortcut
     private let updates = UpdateSession()
+    private let cliSettings: CLILinkSettings
+    private var pendingCLIReminder = false
+    private var showingCLIReminder = false
 
-    init(state: AppState, desktop: DesktopWindows, shortcut: CaptureShortcut) {
+    init(
+        state: AppState, desktop: DesktopWindows, shortcut: CaptureShortcut, cliSettings: CLILinkSettings = .init()
+    ) {
         self.state = state
         self.desktop = desktop
         self.shortcut = shortcut
+        self.cliSettings = cliSettings
         super.init()
         if let button = item.button {
             if let mark = Bundle.main.image(forResource: "MenuBarTemplate") {
@@ -44,11 +50,34 @@ final class StatusMenu: NSObject, NSWindowDelegate {
         if panel.isVisible { close() } else { show() }
     }
 
-    @objc func show() {
+    func checkCLIOnLaunch(inBackground: Bool) {
+        cliSettings.refresh()
+        pendingCLIReminder = cliSettings.shouldRemind
+        if pendingCLIReminder && !inBackground { show() }
+    }
+
+    func toggleCapture() {
+        if panel.isVisible && !showingCLIReminder { close() } else { showCapture() }
+    }
+
+    @objc func showCapture() {
+        if showingCLIReminder { close() }
+        show(allowReminder: false)
+    }
+
+    @objc func show() { show(allowReminder: true) }
+
+    private func show(allowReminder: Bool) {
         guard !panel.isVisible else {
             panel.makeKeyAndOrderFront(nil)
             return
         }
+        if allowReminder && pendingCLIReminder {
+            cliSettings.refresh()
+            showingCLIReminder = cliSettings.shouldRemind
+            pendingCLIReminder = false
+        }
+        let detail: QuickCapture.Detail? = showingCLIReminder ? .cli(reminder: true) : nil
         let view = QuickCapture(
             state: state, panel: panel, desktop: desktop, close: { [weak self] in self?.close() },
             showEditor: { [weak self] id in
@@ -58,7 +87,7 @@ final class StatusMenu: NSObject, NSWindowDelegate {
             recordShortcut: { [weak self] in
                 guard let self else { return }
                 self.shortcut.beginRecording(in: self.panel)
-            }, shortcut: shortcut, updates: updates
+            }, shortcut: shortcut, updates: updates, cliSettings: cliSettings, detail: detail
         )
         .background(GlassSurface())
         // The window shadow follows the panel's alpha, including glass drawn outside the rounded edge.
@@ -82,9 +111,12 @@ final class StatusMenu: NSObject, NSWindowDelegate {
     }
 
     private func close() {
+        showingCLIReminder = false
         shortcut.cancelRecording()
         panel.orderOut(nil)
     }
 
-    func windowDidResignKey(_ notification: Notification) { close() }
+    func windowDidResignKey(_ notification: Notification) {
+        if !cliSettings.installing { close() }
+    }
 }
