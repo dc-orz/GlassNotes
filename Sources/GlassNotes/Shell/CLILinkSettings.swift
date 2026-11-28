@@ -7,6 +7,7 @@ final class CLILinkSettings: ObservableObject {
     private let link: CLILink
     private let defaults: UserDefaults
     var didFinishInstallation: (() -> Void)?
+    private(set) var authorizationPresentation: UUID?
     @Published private(set) var status: CLILink.Status
     @Published private(set) var installing = false
     @Published private(set) var message: String?
@@ -28,8 +29,13 @@ final class CLILinkSettings: ObservableObject {
 
     var shouldRemind: Bool { !suppressReminder && (status == .missing || status == .occupied) }
 
-    func install() {
+    func dismissPresentation(_ id: UUID) {
+        if authorizationPresentation == id { authorizationPresentation = nil }
+    }
+
+    func install(from presentation: UUID) {
         guard !installing else { return }
+        authorizationPresentation = presentation
         installing = true
         message = nil
         Task {
@@ -38,7 +44,10 @@ final class CLILinkSettings: ObservableObject {
             }
             refresh()
             installing = false
-            didFinishInstallation?()
+            if authorizationPresentation == presentation {
+                authorizationPresentation = nil
+                didFinishInstallation?()
+            }
         }
     }
 }

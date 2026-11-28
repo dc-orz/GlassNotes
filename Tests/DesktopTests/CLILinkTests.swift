@@ -38,9 +38,17 @@ struct CLILinkTests {
         nextLaunch.suppressReminder = true
         let settings = CLILinkSettings(link: link, defaults: try #require(UserDefaults(suiteName: suite)))
         #expect(!settings.shouldRemind)
-        settings.install()
+        let presentation = UUID()
+        var restoredFocus = false
+        settings.didFinishInstallation = { restoredFocus = true }
+        settings.install(from: presentation)
+        settings.dismissPresentation(UUID())
+        #expect(settings.authorizationPresentation == presentation)
+        settings.dismissPresentation(presentation)
+        #expect(settings.authorizationPresentation == nil)
         while settings.installing { await Task.yield() }
         #expect(settings.message == nil)
+        #expect(!restoredFocus)
         #expect(settings.status == .installed)
         #expect(try files.destinationOfSymbolicLink(atPath: link.command.path) == link.helper.path)
         try link.install()
@@ -49,6 +57,10 @@ struct CLILinkTests {
         try files.removeItem(at: link.command)
         settings.refresh()
         #expect(settings.shouldRemind)
+        settings.install(from: UUID())
+        while settings.installing { await Task.yield() }
+        #expect(restoredFocus)
+        #expect(settings.authorizationPresentation == nil)
     }
 
     @Test func preservesOccupiedAndDanglingEntriesAndRecognizesRelativeLinks() throws {

@@ -5,19 +5,23 @@ struct CLILinkPane: View {
     @ObservedObject var settings: CLILinkSettings
     let reminder: Bool
     let done: () -> Void
+    @ViewState private var presentation = UUID()
 
     var body: some View {
         VStack(alignment: .leading, spacing: Tokens.Space.standard) {
             HStack {
                 Text("命令行工具").font(Tokens.TypeStyle.heading)
                 Spacer()
-                Button(reminder && settings.shouldRemind ? "稍后" : "完成", action: done)
+                Button(reminder && settings.shouldRemind ? "稍后" : "完成") {
+                    settings.dismissPresentation(presentation)
+                    done()
+                }
             }
             Text(verbatim: CLILink.defaultCommand.path).textSelection(.enabled)
             switch settings.status {
             case .missing:
                 Text("启用后，终端和 agent 可以用 glassnotes 管理便签。")
-                Button(settings.installing ? "正在启用…" : "启用命令行", action: settings.install)
+                Button(settings.installing ? "正在启用…" : "启用命令行") { settings.install(from: presentation) }
                     .disabled(settings.installing)
                     .keyboardShortcut(.defaultAction)
             case .installed:
@@ -36,5 +40,6 @@ struct CLILinkPane: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .onAppear { settings.refresh() }
+        .onDisappear { settings.dismissPresentation(presentation) }
     }
 }

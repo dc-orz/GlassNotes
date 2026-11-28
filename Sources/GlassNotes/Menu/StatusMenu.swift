@@ -112,13 +112,16 @@ final class StatusMenu: NSObject, NSWindowDelegate {
     }
 
     private func close() {
+        if let presentation = cliSettings.authorizationPresentation {
+            cliSettings.dismissPresentation(presentation)
+        }
         showingCLIReminder = false
         shortcut.cancelRecording()
         panel.orderOut(nil)
     }
 
     func windowDidResignKey(_ notification: Notification) {
-        if !cliSettings.installing { close() }
+        if cliSettings.authorizationPresentation == nil { close() }
     }
 
     private func finishCLIAuthorization() {
